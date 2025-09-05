@@ -132,9 +132,9 @@ export default function PaymentsPage() {
             asChild
             className="mb-4"
           >
-            <a href="/dashboard">
+            <a href="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back to Home
             </a>
           </Button>
           

@@ -467,12 +467,17 @@ export default function TournamentPage() {
                         </div>
                         
                         <div>
-                          <Label htmlFor="teamLogo">Team Logo URL</Label>
-                          <Input
-                            id="teamLogo"
+                          <Label htmlFor="teamLogo">Team Logo</Label>
+                          <ImageUpload
                             value={formData.teamLogo}
-                            onChange={(e) => handleInputChange('teamLogo', e.target.value)}
-                            placeholder="Enter logo URL (optional)"
+                            onValueChange={(value) => handleInputChange('teamLogo', value)}
+                            placeholder="Upload team logo"
+                            required={false}
+                            width={150}
+                            height={150}
+                            aspectRatio="1:1"
+                            maxSize={5}
+                            acceptedFormats={["image/jpeg", "image/png", "image/webp"]}
                           />
                         </div>
                         
@@ -787,12 +792,7 @@ export default function TournamentPage() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>No teams registered yet</p>
-                  {isRegistrationOpen && !isTournamentFull && (
-                    <Button className="mt-4" onClick={handleRegisterClick} size="lg">
-                      <Users className="w-4 h-4 mr-2" />
-                      Register Your Team
-                    </Button>
-                  )}
+                  {/* Registration button removed from here - only main header button should be used */}
                 </div>
               )}
             </CardContent>
@@ -865,12 +865,7 @@ export default function TournamentPage() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {isRegistrationOpen && !isTournamentFull && (
-                <Button className="w-full" onClick={handleRegisterClick} size="lg">
-                  <Users className="w-4 h-4 mr-2" />
-                  Register Team
-                </Button>
-              )}
+              {/* Registration button removed from quick actions - only main header button should be used */}
               
               {isRegistrationOpen && isTournamentFull && (
                 <Button className="w-full" disabled>

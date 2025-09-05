@@ -23,8 +23,10 @@ export class TournamentScheduler {
     console.log('Starting tournament scheduler...');
     this.isRunning = true;
     
-    // Run immediately on start
-    this.checkTournamentStatuses();
+    // Delay the first check to allow database to fully initialize
+    setTimeout(() => {
+      this.checkTournamentStatuses();
+    }, 5000); // 5 second delay
     
     // Run every minute (60000 ms)
     this.intervalId = setInterval(() => {

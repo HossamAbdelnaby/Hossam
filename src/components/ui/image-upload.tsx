@@ -24,6 +24,7 @@ interface ImageUploadProps {
   required?: boolean;
   className?: string;
   disabled?: boolean;
+  type?: string;
   maxSize?: number; // in MB
   acceptedFormats?: string[];
   aspectRatio?: string;
@@ -39,6 +40,7 @@ export function ImageUpload({
   required = false,
   className = "",
   disabled = false,
+  type = "logo",
   maxSize = 5, // 5MB default
   acceptedFormats = ["image/jpeg", "image/png", "image/gif", "image/webp"],
   aspectRatio = "1:1",
@@ -102,6 +104,14 @@ export function ImageUpload({
   const handleFile = async (file: File) => {
     setError("");
     
+    // Debug: Log file details
+    console.log('Processing file:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      typeParam: type
+    });
+    
     // Validate file
     const validationError = validateFile(file);
     if (validationError) {
@@ -123,7 +133,7 @@ export function ImageUpload({
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('type', 'logo');
+      formData.append('type', type);
       formData.append('width', width.toString());
       formData.append('height', height.toString());
 
@@ -139,8 +149,12 @@ export function ImageUpload({
 
       // Handle response
       xhr.addEventListener('load', () => {
+        console.log('Upload response status:', xhr.status);
+        console.log('Upload response text:', xhr.responseText);
+        
         if (xhr.status === 200) {
           const response = JSON.parse(xhr.responseText);
+          console.log('Upload successful, URL:', response.url);
           onValueChange?.(response.url);
           setUploading(false);
           setUploadProgress(0);
@@ -159,6 +173,7 @@ export function ImageUpload({
       });
 
       xhr.addEventListener('error', () => {
+        console.error('Network error during upload');
         setError('Network error during upload');
         setUploading(false);
         setUploadProgress(0);
@@ -170,6 +185,7 @@ export function ImageUpload({
       xhr.send(formData);
 
     } catch (err) {
+      console.error('Upload error:', err);
       setError('Failed to upload image');
       setUploading(false);
       setUploadProgress(0);

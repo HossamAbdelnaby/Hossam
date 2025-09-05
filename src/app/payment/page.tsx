@@ -38,7 +38,7 @@ export default function PaymentPage() {
     if (paymentId) {
       // Existing payment flow
       if (!user) {
-        router.push('/dashboard')
+        router.push('/')
         return
       }
       fetchPaymentDetails()
@@ -51,7 +51,7 @@ export default function PaymentPage() {
       // Just set loading to false, we'll show payment method selection
       setLoading(false)
     } else {
-      router.push('/dashboard')
+      router.push('/')
     }
   }, [paymentId, tournamentId, packageType, user, router])
 
@@ -374,7 +374,7 @@ export default function PaymentPage() {
             The payment you're looking for doesn't exist or you don't have permission to view it.
           </p>
           <Button asChild>
-            <a href="/dashboard">Go to Dashboard</a>
+            <a href="/">Go to Home</a>
           </Button>
         </div>
       </div>
@@ -391,9 +391,9 @@ export default function PaymentPage() {
             asChild
             className="mb-4"
           >
-            <a href="/dashboard">
+            <a href="/">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
+              Back to Home
             </a>
           </Button>
           
@@ -583,7 +583,7 @@ export default function PaymentPage() {
                 )}
                 
                 <Button variant="outline" asChild>
-                  <a href="/dashboard">
+                  <a href="/">
                     Cancel
                   </a>
                 </Button>
@@ -602,8 +602,8 @@ export default function PaymentPage() {
                 Your payment has been successfully processed.
               </p>
               <Button asChild>
-                <a href="/dashboard">
-                  Go to Dashboard
+                <a href="/">
+                  Go to Home
                 </a>
               </Button>
             </CardContent>

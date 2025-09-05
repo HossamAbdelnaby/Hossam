@@ -137,6 +137,13 @@ export class ImageUtils {
         }
       }
 
+      // Validate calculated dimensions
+      if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+        console.warn('Invalid dimensions calculated, using defaults:', { width, height, metadata });
+        width = finalOptions.maxWidth;
+        height = finalOptions.maxHeight;
+      }
+
       // Build processing pipeline
       let pipeline = sharp(buffer).resize(width, height, {
         fit: finalOptions.fit,

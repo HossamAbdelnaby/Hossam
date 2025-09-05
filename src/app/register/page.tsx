@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -43,6 +44,37 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Validate all required fields
+    if (!formData.name.trim()) {
+      setError('Full name is required')
+      return
+    }
+
+    if (!formData.email.trim()) {
+      setError('Email is required')
+      return
+    }
+
+    if (!formData.username.trim()) {
+      setError(formData.isUrl ? 'Custom URL is required' : 'Username is required')
+      return
+    }
+
+    if (!formData.phone.trim()) {
+      setError('Phone number is required')
+      return
+    }
+
+    if (!formData.country) {
+      setError('Country selection is required')
+      return
+    }
+
+    if (!formData.photoUrl || formData.photoUrl.trim() === '') {
+      setError('Personal photo is required. Please upload a photo before submitting.')
+      return
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match')
@@ -83,7 +115,7 @@ export default function RegisterPage() {
         photoUrl: formData.photoUrl || undefined
       })
       if (result.success) {
-        router.push('/dashboard')
+        router.push('/')
       } else {
         setError(result.error || 'Registration failed')
       }
@@ -113,13 +145,14 @@ export default function RegisterPage() {
               </Alert>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name (Optional)</Label>
+              <Label htmlFor="name">Full Name *</Label>
               <Input
                 id="name"
                 type="text"
                 placeholder="Enter your full name"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
+                required
               />
             </div>
             <div className="space-y-2">
@@ -173,13 +206,14 @@ export default function RegisterPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone (Optional)</Label>
+              <Label htmlFor="phone">Phone *</Label>
               <Input
                 id="phone"
                 type="tel"
                 placeholder="Enter your phone number"
                 value={formData.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
+                required
               />
             </div>
               <CountrySelector
@@ -187,18 +221,20 @@ export default function RegisterPage() {
               onValueChange={(value) => handleChange('country', value)}
               label="Country"
               placeholder="Select your country"
+              required={true}
             />
             <ImageUpload
               value={formData.photoUrl}
               onValueChange={(value) => handleChange('photoUrl', value)}
               label="Personal Photo"
               placeholder="Upload your personal photo"
-              required={false}
+              required={true}
               width={150}
               height={150}
               aspectRatio="1:1"
               maxSize={10}
               acceptedFormats={["image/jpeg", "image/png", "image/webp"]}
+              type="photo"
             />
             <div className="space-y-2">
               <Label htmlFor="language">Preferred Language</Label>
@@ -217,9 +253,8 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="Create a password"
                 value={formData.password}
                 onChange={(e) => handleChange('password', e.target.value)}
@@ -228,9 +263,8 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 placeholder="Confirm your password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}

@@ -104,6 +104,11 @@ export async function updateTournamentStatus(tournamentId: string): Promise<Tour
  */
 export async function updateAllTournamentStatuses(): Promise<TournamentStatusUpdate[]> {
   try {
+    // Check if db is properly initialized
+    if (!db || !db.tournament) {
+      throw new Error('Database connection not established');
+    }
+
     const tournaments = await db.tournament.findMany({
       where: { isActive: true },
       select: {

@@ -107,7 +107,8 @@ export default function TournamentFormPage() {
     
     // Game Info
     prizeAmount: "",
-    bracketType: "", // Changed from bracketTypes array to single bracketType string
+    bracketType: "", // Single bracket type for free package
+    bracketTypes: [], // Multiple bracket types for paid packages
     maxTeams: 16, // Default to 16 teams
     
     // Graphics
@@ -139,10 +140,28 @@ export default function TournamentFormPage() {
   };
 
   const handleBracketTypeChange = (type: string) => {
-    setFormData(prev => ({
-      ...prev,
-      bracketType: type
-    }));
+    if (packageType === 'free') {
+      // Free package: single selection
+      setFormData(prev => ({
+        ...prev,
+        bracketType: type,
+        bracketTypes: []
+      }));
+    } else {
+      // Paid package: multiple selection
+      setFormData(prev => {
+        const currentTypes = prev.bracketTypes || [];
+        const isSelected = currentTypes.includes(type);
+        
+        return {
+          ...prev,
+          bracketType: type, // Keep single selection for compatibility
+          bracketTypes: isSelected 
+            ? currentTypes.filter(t => t !== type)
+            : [...currentTypes, type]
+        };
+      });
+    }
   };
 
   const generateRandomUrl = () => {
@@ -181,7 +200,8 @@ export default function TournamentFormPage() {
           registrationEnd: formData.registrationEnd ? new Date(formData.registrationEnd) : null,
           tournamentStart: new Date(formData.tournamentStart),
           tournamentEnd: formData.tournamentEnd ? new Date(formData.tournamentEnd) : null,
-          bracketType: formData.bracketType,
+          bracketType: packageType === 'free' ? formData.bracketType : (formData.bracketTypes[0] || formData.bracketType),
+          bracketTypes: packageType === 'free' ? [formData.bracketType] : formData.bracketTypes,
           maxTeams: parseInt(formData.maxTeams.toString()),
           status: 'DRAFT', // Always start as DRAFT, status will be managed automatically
         }),
@@ -352,7 +372,7 @@ export default function TournamentFormPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="url">Tournament URL</Label>
+              <Label htmlFor="url">Tournament URL *</Label>
               <div className="flex gap-2">
                 <Input
                   id="url"
@@ -361,6 +381,7 @@ export default function TournamentFormPage() {
                   placeholder="https://example.com/tournament"
                   type="url"
                   className="flex-1"
+                  required
                 />
                 <Button
                   type="button"
@@ -379,13 +400,14 @@ export default function TournamentFormPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Describe your tournament..."
                 rows={3}
+                required
               />
             </div>
           </CardContent>
@@ -428,7 +450,7 @@ export default function TournamentFormPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="registrationEnd">Registration End</Label>
+                <Label htmlFor="registrationEnd">Registration End *</Label>
                 <Input
                   id="registrationEnd"
                   type="datetime-local"
@@ -452,12 +474,13 @@ export default function TournamentFormPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="tournamentEnd">Tournament End</Label>
+                <Label htmlFor="tournamentEnd">Tournament End *</Label>
                 <Input
                   id="tournamentEnd"
                   type="datetime-local"
                   value={formData.tournamentEnd}
                   onChange={(e) => handleInputChange('tournamentEnd', e.target.value)}
+                  required
                 />
               </div>
             </div>
@@ -483,7 +506,7 @@ export default function TournamentFormPage() {
               {packageType !== 'free' && (
                 <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-sm text-green-800">
-                    <strong>Paid Package:</strong> Enter your tournament details first, then proceed to payment.
+                    <strong>Paid Package:</strong> Select multiple bracket types for your tournament. You can run different tournament stages with various bracket formats.
                   </p>
                 </div>
               )}
@@ -491,7 +514,7 @@ export default function TournamentFormPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="prizeAmount">Prize Amount (USD)</Label>
+              <Label htmlFor="prizeAmount">Prize Amount (USD) *</Label>
               <Input
                 id="prizeAmount"
                 type="number"
@@ -500,33 +523,50 @@ export default function TournamentFormPage() {
                 value={formData.prizeAmount}
                 onChange={(e) => handleInputChange('prizeAmount', e.target.value)}
                 placeholder="0.00"
+                required
               />
             </div>
             
             <div className="space-y-2">
-              <Label>Bracket Type *</Label>
+              <Label>
+                {packageType === 'free' ? 'Bracket Type *' : 'Bracket Types *'}
+                {packageType !== 'free' && (
+                  <span className="text-sm text-muted-foreground ml-2">
+                    (Select all that apply)
+                  </span>
+                )}
+              </Label>
               <div className="grid md:grid-cols-1 gap-3">
                 {bracketTypes
                   .filter(type => features.bracketTypes.includes(type.value))
-                  .map(type => (
-                    <div key={type.value} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        id={type.value}
-                        name="bracketType"
-                        value={type.value}
-                        checked={formData.bracketType === type.value}
-                        onChange={() => handleBracketTypeChange(type.value)}
-                        className="w-4 h-4 text-primary border-gray-300 focus:ring-primary focus:ring-2"
-                      />
-                      <Label htmlFor={type.value} className="text-sm cursor-pointer">
-                        {type.label}
-                      </Label>
-                    </div>
-                  ))}
+                  .map(type => {
+                    const isSelected = packageType === 'free' 
+                      ? formData.bracketType === type.value
+                      : formData.bracketTypes?.includes(type.value);
+                    
+                    return (
+                      <div key={type.value} className="flex items-center space-x-2">
+                        <input
+                          type={packageType === 'free' ? "radio" : "checkbox"}
+                          id={type.value}
+                          name={packageType === 'free' ? "bracketType" : `bracketType-${type.value}`}
+                          value={type.value}
+                          checked={isSelected}
+                          onChange={() => handleBracketTypeChange(type.value)}
+                          className="w-4 h-4 text-primary border-gray-300 focus:ring-primary focus:ring-2"
+                        />
+                        <Label htmlFor={type.value} className="text-sm cursor-pointer">
+                          {type.label}
+                        </Label>
+                      </div>
+                    );
+                  })}
               </div>
-              {!formData.bracketType && (
+              {packageType === 'free' && !formData.bracketType && (
                 <p className="text-sm text-destructive">Please select a bracket type</p>
+              )}
+              {packageType !== 'free' && (!formData.bracketTypes || formData.bracketTypes.length === 0) && (
+                <p className="text-sm text-destructive">Please select at least one bracket type</p>
               )}
             </div>
             

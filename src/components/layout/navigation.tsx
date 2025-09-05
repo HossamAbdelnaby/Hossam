@@ -6,8 +6,11 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { ProfileDialog } from "@/components/layout/profile-dialog";
 import { 
   Menu, 
   Globe, 
@@ -32,7 +35,6 @@ const navigation = {
     { name: "Rent Pusher", href: "/rent-pusher", icon: Search },
     { name: "CWL Clan Registration", href: "/cwl/register", icon: Users },
     { name: "Join CWL Clans", href: "/cwl", icon: Users },
-    { name: "My Clan Profile", href: "/cwl/profile", icon: Shield },
     { name: "Extra Services", href: "/services", icon: Settings },
   ],
   ar: [
@@ -43,7 +45,6 @@ const navigation = {
     { name: "استئجار لاعب", href: "/rent-pusher", icon: Search },
     { name: "تسجيل عشيرة CWL", href: "/cwl/register", icon: Users },
     { name: "الانضمام لعشائر CWL", href: "/cwl", icon: Users },
-    { name: "ملف عشيرتي", href: "/cwl/profile", icon: Shield },
     { name: "خدمات إضافية", href: "/services", icon: Settings },
   ],
 };
@@ -101,15 +102,21 @@ export default function Navigation() {
       return (
         <div className="flex items-center gap-2">
           <NotificationBell />
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={user.avatar || undefined} alt={user.name || user.email} />
-            <AvatarFallback>
-              {(user.name || user.email).charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-medium hidden sm:inline-block">
-            {user.name || user.email}
-          </span>
+          
+          <ProfileDialog user={user} onLogout={handleLogout}>
+            <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 rounded-md px-2 py-1 transition-all duration-200 hover:scale-105">
+              <Avatar className="w-8 h-8 ring-2 ring-transparent hover:ring-primary/20 transition-all duration-200">
+                <AvatarImage src={user.avatar || undefined} alt={user.name || user.email} />
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10">
+                  {(user.name || user.email).charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium hidden sm:inline-block hover:text-primary transition-colors">
+                {user.name || user.email}
+              </span>
+            </div>
+          </ProfileDialog>
+          
           {(user.role === 'ADMIN' || user.role === 'MODERATOR') && (
             <Button variant="outline" size="sm" asChild>
               <Link href="/admin">
@@ -118,10 +125,6 @@ export default function Navigation() {
               </Link>
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline-block">Logout</span>
-          </Button>
         </div>
       );
     }
