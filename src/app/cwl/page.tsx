@@ -15,6 +15,7 @@ import {
   Plus,
   Search,
   Crown,
+  Settings,
   Loader2
 } from 'lucide-react'
 
@@ -98,12 +99,20 @@ export default function CWLPage() {
         </div>
         
         {user && (
-          <Button asChild className="gap-2">
-            <Link href="/cwl/register">
-              <Plus className="w-4 h-4" />
-              Register Clan
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild className="gap-2">
+              <Link href="/cwl/register">
+                <Plus className="w-4 h-4" />
+                Register Clan
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="gap-2">
+              <Link href="/cwl/profile">
+                <Settings className="w-4 h-4" />
+                My Clan Settings
+              </Link>
+            </Button>
+          </div>
         )}
       </div>
 

@@ -153,7 +153,10 @@ export default function AccountSettingsPage() {
       if (response.ok) {
         // Redirect to home page after account deletion
         router.push('/')
-        window.location.reload() // Force reload to clear auth state
+        // Force reload to clear auth state
+        setTimeout(() => {
+          window.location.reload()
+        }, 100)
       } else {
         const data = await response.json()
         setError(data.error || 'Failed to delete account')

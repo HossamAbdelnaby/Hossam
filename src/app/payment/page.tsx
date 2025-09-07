@@ -82,7 +82,7 @@ export default function PaymentPage() {
 
       const data = await response.json()
       
-      // If it's PayPal or Credit Card with redirect URL, redirect
+        // If it's PayPal or Credit Card with redirect URL, redirect
       if (data.paymentUrl) {
         window.location.href = data.paymentUrl
       } else {

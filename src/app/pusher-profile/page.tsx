@@ -62,6 +62,8 @@ export default function PusherProfilePage() {
   const [profile, setProfile] = useState<PusherProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   
   const { user } = useAuth();
 
@@ -109,6 +111,29 @@ export default function PusherProfilePage() {
       fetchProfile();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update contract');
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    try {
+      setDeleteLoading(true);
+      
+      const response = await fetch('/api/pusher/profile', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete profile');
+      }
+
+      // Redirect to home page after successful deletion
+      window.location.href = '/';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete profile');
+      setDeleteConfirm(false);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -449,6 +474,59 @@ export default function PusherProfilePage() {
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Mark as Available
                 </Button>
+              )}
+
+              {/* Delete Profile Button */}
+              {!deleteConfirm ? (
+                <Button 
+                  variant="destructive" 
+                  className="w-full"
+                  onClick={() => setDeleteConfirm(true)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Profile
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <p className="text-sm font-medium text-destructive mb-1">
+                      ⚠️ Delete Profile Permanently?
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      This action cannot be undone. All your profile data, contracts, and messages will be permanently deleted.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={handleDeleteProfile}
+                      disabled={deleteLoading}
+                    >
+                      {deleteLoading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Confirm Delete
+                        </>
+                      )}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => setDeleteConfirm(false)}
+                      disabled={deleteLoading}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

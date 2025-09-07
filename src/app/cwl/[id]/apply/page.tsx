@@ -47,6 +47,9 @@ export default function CWLApplyPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [clan, setClan] = useState<Clan | null>(null)
+  const [existingApplication, setExistingApplication] = useState<any>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
   
   const [formData, setFormData] = useState({
     inGameName: '',

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,6 +72,7 @@ export default function RentPusherPage() {
   const [contractSuccess, setContractSuccess] = useState(false);
   
   const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     fetchPushers();
@@ -118,7 +120,7 @@ export default function RentPusherPage() {
   const handleHirePusher = (pusher: Pusher) => {
     if (!user) {
       // Redirect to login if not authenticated
-      window.location.href = '/login';
+      router.push('/login');
       return;
     }
     setSelectedPusher(pusher);

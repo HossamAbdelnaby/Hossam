@@ -28,7 +28,8 @@ import {
   Loader2,
   Save,
   Star,
-  Shield
+  Shield,
+  Trash2
 } from "lucide-react";
 
 interface PusherProfile {
@@ -69,6 +70,8 @@ export default function PusherRegistrationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     trophies: "",
@@ -118,6 +121,29 @@ export default function PusherRegistrationPage() {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleDeleteProfile = async () => {
+    try {
+      setDeleteLoading(true);
+      
+      const response = await fetch('/api/pusher/profile', {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete profile');
+      }
+
+      // Redirect to home page after successful deletion
+      window.location.href = '/';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete profile');
+      setDeleteConfirm(false);
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -472,23 +498,78 @@ export default function PusherRegistrationPage() {
         </Card>
 
         {/* Submit Button */}
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" asChild>
-            <Link href="/">Cancel</Link>
-          </Button>
-          <Button type="submit" disabled={submitting}>
-            {submitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {existingProfile ? 'Updating...' : 'Creating...'}
-              </>
+        <div className="flex justify-between items-end gap-4">
+          {/* Delete Profile Button - Only show for existing profiles */}
+          {existingProfile && (
+            !deleteConfirm ? (
+              <Button 
+                variant="destructive" 
+                type="button"
+                onClick={() => setDeleteConfirm(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Profile
+              </Button>
             ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                {existingProfile ? 'Update Profile' : 'Create Profile'}
-              </>
-            )}
-          </Button>
+              <div className="space-y-2">
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <p className="text-sm font-medium text-destructive mb-1">
+                    ⚠️ Delete Profile Permanently?
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    This action cannot be undone. All your profile data will be permanently deleted.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={handleDeleteProfile}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Confirm Delete
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setDeleteConfirm(false)}
+                    disabled={deleteLoading}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )
+          )}
+
+          <div className="flex gap-4 ml-auto">
+            <Button type="button" variant="outline" asChild>
+              <Link href="/">Cancel</Link>
+            </Button>
+            <Button type="submit" disabled={submitting || deleteLoading}>
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {existingProfile ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {existingProfile ? 'Update Profile' : 'Create Profile'}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

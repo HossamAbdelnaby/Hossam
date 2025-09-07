@@ -35,6 +35,8 @@ const navigation = {
     { name: "Rent Pusher", href: "/rent-pusher", icon: Search },
     { name: "CWL Clan Registration", href: "/cwl/register", icon: Users },
     { name: "Join CWL Clans", href: "/cwl", icon: Users },
+    { name: "My Clan", href: "/my-clan", icon: Shield },
+    { name: "My Clan Settings", href: "/cwl/profile", icon: Settings },
     { name: "Extra Services", href: "/services", icon: Settings },
   ],
   ar: [
@@ -45,6 +47,8 @@ const navigation = {
     { name: "استئجار لاعب", href: "/rent-pusher", icon: Search },
     { name: "تسجيل عشيرة CWL", href: "/cwl/register", icon: Users },
     { name: "الانضمام لعشائر CWL", href: "/cwl", icon: Users },
+    { name: "عشيرتي", href: "/my-clan", icon: Shield },
+    { name: "إعدادات عشيرتي", href: "/cwl/profile", icon: Settings },
     { name: "خدمات إضافية", href: "/services", icon: Settings },
   ],
 };
