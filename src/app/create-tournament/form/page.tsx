@@ -25,7 +25,8 @@ import {
   Loader2,
   Save,
   CreditCard,
-  Dices
+  Dices,
+  AlertTriangle
 } from "lucide-react";
 
 const bracketTypes = [
@@ -107,6 +108,12 @@ export default function TournamentFormPage() {
     
     // Game Info
     prizeAmount: "",
+    currency: "USD",
+    paymentMethods: [],
+    earlyBirdPrice: "",
+    regularPrice: "",
+    latePrice: "",
+    paymentTerms: "",
     bracketType: "", // Single bracket type for free package
     bracketTypes: [], // Multiple bracket types for paid packages
     maxTeams: 16, // Default to 16 teams
@@ -617,6 +624,122 @@ export default function TournamentFormPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Payment Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5" />
+              Payment Information
+            </CardTitle>
+            <CardDescription>
+              Configure payment settings for your tournament
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="currency">Currency *</Label>
+                <Select value={formData.currency || 'USD'} onValueChange={(value) => handleInputChange('currency', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                    <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethods">Accepted Payment Methods *</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {paymentMethods.map((method) => (
+                    <label key={method.value} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.paymentMethods?.includes(method.value) || false}
+                        onChange={(e) => {
+                          const currentMethods = formData.paymentMethods || [];
+                          if (e.target.checked) {
+                            handleInputChange('paymentMethods', [...currentMethods, method.value]);
+                          } else {
+                            handleInputChange('paymentMethods', currentMethods.filter((m: string) => m !== method.value));
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-sm">{method.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="earlyBirdPrice">Early Bird Price</Label>
+                <Input
+                  id="earlyBirdPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.earlyBirdPrice || ''}
+                  onChange={(e) => handleInputChange('earlyBirdPrice', e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="regularPrice">Regular Price *</Label>
+                <Input
+                  id="regularPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.regularPrice || ''}
+                  onChange={(e) => handleInputChange('regularPrice', e.target.value)}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="latePrice">Late Price</Label>
+                <Input
+                  id="latePrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.latePrice || ''}
+                  onChange={(e) => handleInputChange('latePrice', e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="paymentTerms">Payment Terms & Conditions</Label>
+              <Textarea
+                id="paymentTerms"
+                value={formData.paymentTerms || ''}
+                onChange={(e) => handleInputChange('paymentTerms', e.target.value)}
+                placeholder="Specify payment terms, refund policy, etc."
+                rows={3}
+              />
+            </div>
+            
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Payment processing fees may apply depending on the selected payment methods. 
+                Participants will be redirected to the payment page after registration.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
 
         {/* Payment Section - Hidden for all packages, will be handled after tournament creation */}
         {/* Payment section is removed to work like free package */}

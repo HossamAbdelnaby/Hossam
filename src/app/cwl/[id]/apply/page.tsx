@@ -21,7 +21,8 @@ import {
   Save,
   CheckCircle,
   User,
-  Hash
+  Hash,
+  DollarSign
 } from 'lucide-react'
 
 interface Clan {
@@ -288,6 +289,67 @@ export default function CWLApplyPage() {
               <p className="text-sm bg-muted p-3 rounded-md">{clan.terms}</p>
             </div>
           )}
+
+          {/* Payment Information */}
+          <div className="mt-6 pt-6 border-t">
+            <Label className="text-sm font-medium text-muted-foreground mb-4 block flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Payment Information
+            </Label>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Amount Per Player:</span>
+                      <span className="font-semibold">${clan.offeredPayment.toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Currency:</span>
+                      <span className="font-medium">{clan.paymentCurrency || 'USD'}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Payment Due:</span>
+                      <span className="font-medium">
+                        {clan.paymentDueDate 
+                          ? new Date(clan.paymentDueDate).toLocaleDateString()
+                          : 'Upon acceptance'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-muted-foreground">Accepted Payment Methods:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {clan.paymentMethods ? (
+                        JSON.parse(clan.paymentMethods).map((method: string) => (
+                          <Badge key={method} variant="outline" className="text-xs">
+                            {method.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          Various Methods
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {clan.paymentTerms && (
+                      <div className="pt-2 border-t">
+                        <div className="text-sm font-medium text-muted-foreground mb-1">Payment Terms:</div>
+                        <p className="text-xs text-muted-foreground">{clan.paymentTerms}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
