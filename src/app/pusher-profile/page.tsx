@@ -286,7 +286,7 @@ export default function PusherProfilePage() {
                   <div className="space-y-1 text-sm">
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-muted-foreground" />
-                      <span>{profile.user.name || profile.user.email}</span>
+                      <span>{profile.user.name || profile.user.username}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Globe className="w-4 h-4 text-muted-foreground" />

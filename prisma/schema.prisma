@@ -42,6 +42,7 @@ model User {
   permissions   UserPermission[]
   adminLogs     AdminLog[]
   registrationLogs RegistrationLog[]
+  pendingTournaments PendingTournament[]
 
   @@map("users")
 }
@@ -76,6 +77,7 @@ model Tournament {
   bracketType     BracketType
   packageType     TournamentPackage
   graphicRequests String?
+  tournamentLogo  String?           // Tournament logo URL
   rules           String?
   isActive        Boolean           @default(true)
   createdAt       DateTime          @default(now())
@@ -439,6 +441,8 @@ model Payment {
   contract        Contract?     @relation(fields: [contractId], references: [id])
   serviceOrderId  String?       @unique
   serviceOrder    ServiceOrder? @relation(fields: [serviceOrderId], references: [id])
+  pendingTournamentId String?   @unique
+  pendingTournament PendingTournament? @relation(fields: [pendingTournamentId], references: [id])
 
   @@map("payments")
 }
@@ -543,13 +547,50 @@ model AdminConfig {
 model PackagePrice {
   id          String           @id @default(cuid())
   packageType TournamentPackage @unique
+  name        String           @default("")
+  description String           @default("")
   price       Float
   currency    String           @default("USD")
+  features    String           // JSON array of features
+  color       String           @default("#3B82F6") // Hex color code
   isActive    Boolean          @default(true)
+  isEditable  Boolean          @default(true)   // FREE package will be false
   updatedAt   DateTime         @updatedAt
   updatedBy   String
 
   @@map("package_prices")
+}
+
+// Pending Tournament Model (for paid packages before payment)
+model PendingTournament {
+  id              String           @id @default(cuid())
+  host            String
+  name            String
+  url             String?
+  description     String?
+  prizeAmount     Float            @default(0)
+  currency        String           @default("USD")
+  maxTeams        Int
+  registrationStart DateTime
+  registrationEnd   DateTime?
+  tournamentStart   DateTime
+  tournamentEnd     DateTime?
+  bracketType     BracketType
+  packageType     TournamentPackage
+  graphicRequests String?
+  tournamentLogo  String?          // Tournament logo URL
+  packagePrice    Float
+  packageCurrency String           @default("USD")
+  status          String           @default("PENDING_PAYMENT") // PENDING_PAYMENT, PAID, CANCELLED, EXPIRED
+  organizerId     String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  organizer       User             @relation(fields: [organizerId], references: [id])
+  payment         Payment?
+
+  @@map("pending_tournaments")
 }
 
 // Payment Gateway Model

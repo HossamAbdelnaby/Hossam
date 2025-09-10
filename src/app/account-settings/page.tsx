@@ -268,10 +268,6 @@ export default function AccountSettingsPage() {
                   <Separator />
                   
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Email:</span>
-                      <span className="font-medium">{user.email}</span>
-                    </div>
                     {user.phone && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Phone:</span>

@@ -715,11 +715,8 @@ export default function ClanDetailsPage() {
                                   </Badge>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Mail className="w-4 h-4" />
-                                  <span>{request.user.email}</span>
-                                  {request.user.name && (
-                                    <span>({request.user.name})</span>
-                                  )}
+                                  <User className="w-4 h-4" />
+                                  <span>{request.user.name || request.user.username}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <Calendar className="w-4 h-4" />

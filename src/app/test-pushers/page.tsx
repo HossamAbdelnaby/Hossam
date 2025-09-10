@@ -210,7 +210,6 @@ export default function TestPushersPage() {
                           <div>
                             <div className="font-medium">{pusher.realName}</div>
                             <div className="text-sm text-muted-foreground">@{pusher.user.username}</div>
-                            <div className="text-sm text-muted-foreground">{pusher.user.email}</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">

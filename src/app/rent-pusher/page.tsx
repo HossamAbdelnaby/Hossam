@@ -114,7 +114,7 @@ export default function RentPusherPage() {
   const filteredPushers = pushers.filter(pusher =>
     pusher.realName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pusher.user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pusher.user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    pusher.user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleHirePusher = (pusher: Pusher) => {
@@ -318,7 +318,7 @@ export default function RentPusherPage() {
                           {pusher.realName}
                         </CardTitle>
                         <CardDescription className="text-sm">
-                          {pusher.user.name || pusher.user.email}
+                          {pusher.user.name || pusher.user.username}
                         </CardDescription>
                         <div className="flex items-center gap-1 mt-1">
                           <Badge variant={getStatusColor(pusher.status)} className="text-xs">

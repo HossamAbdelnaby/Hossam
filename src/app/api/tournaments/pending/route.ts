@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { TournamentPackage, BracketType, TournamentStatus } from '@prisma/client';
+import { TournamentPackage, BracketType } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       graphicRequests,
       maxTeams,
       tournamentLogo, // New field for tournament logo
-      paymentCompleted = false, // New field to indicate if payment is completed
+      currency = 'USD',
     } = body;
 
     // Validate required fields
@@ -52,15 +52,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if payment is required for paid packages
+    // Check if this is a paid package
     const paidPackages = ['PAID_GRAPHICS', 'PAID_DISCORD_BOT', 'FULL_MANAGEMENT'];
     const requiresPayment = paidPackages.includes(packageType);
 
-    // For paid packages, payment must be completed before creating tournament
-    if (requiresPayment && !paymentCompleted) {
+    // This endpoint should only be used for paid packages
+    if (!requiresPayment) {
       return NextResponse.json(
-        { error: 'Payment required before creating tournament' },
-        { status: 402 } // 402 Payment Required
+        { error: 'This endpoint is only for paid packages. Free packages should use the regular tournament creation endpoint.' },
+        { status: 400 }
+      );
+    }
+
+    // Get package price from database
+    const packagePrice = await db.packagePrice.findUnique({
+      where: { packageType }
+    });
+
+    if (!packagePrice || !packagePrice.isActive) {
+      return NextResponse.json(
+        { error: 'Package not available or inactive' },
+        { status: 400 }
       );
     }
 
@@ -82,14 +94,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create tournament
-    const tournament = await db.tournament.create({
+    // Create pending tournament record
+    const pendingTournament = await db.pendingTournament.create({
       data: {
         host,
         name: tournamentName,
         url,
         description,
         prizeAmount: prizeAmount || 0,
+        currency,
         maxTeams,
         registrationStart: new Date(registrationStart),
         registrationEnd: registrationEnd ? new Date(registrationEnd) : null,
@@ -100,37 +113,25 @@ export async function POST(request: NextRequest) {
         graphicRequests,
         tournamentLogo, // Add tournament logo
         organizerId: decoded.userId,
-        status: requiresPayment ? TournamentStatus.DRAFT : TournamentStatus.REGISTRATION_OPEN, // Paid packages start as DRAFT until payment confirmed
-      },
-      include: {
-        organizer: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-      },
-    });
-
-    // Create tournament stage for the single bracket type
-    await db.tournamentStage.create({
-      data: {
-        name: `${bracketType.replace('_', ' ')} Stage`,
-        type: bracketType,
-        order: 0,
-        tournamentId: tournament.id,
+        packagePrice: packagePrice.price,
+        packageCurrency: packagePrice.currency,
+        status: 'PENDING_PAYMENT',
       },
     });
 
     return NextResponse.json({
-      message: 'Tournament created successfully',
-      tournament,
+      message: 'Tournament data saved successfully. Please complete payment to create the tournament.',
+      pendingTournament: {
+        id: pendingTournament.id,
+        packagePrice: packagePrice.price,
+        packageCurrency: packagePrice.currency,
+        tournamentName: pendingTournament.name,
+      },
     });
   } catch (error) {
-    console.error('Tournament creation error:', error);
+    console.error('Pending tournament creation error:', error);
     return NextResponse.json(
-      { error: 'Failed to create tournament' },
+      { error: 'Failed to save tournament data' },
       { status: 500 }
     );
   }
@@ -138,67 +139,34 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status');
-    const isActive = searchParams.get('isActive') !== 'false';
+    const token = request.cookies.get('auth-token')?.value;
 
-    const skip = (page - 1) * limit;
-
-    const where: any = {
-      isActive,
-    };
-
-    if (status && Object.values(['DRAFT', 'REGISTRATION_OPEN', 'REGISTRATION_CLOSED', 'IN_PROGRESS', 'COMPLETED']).includes(status)) {
-      where.status = status;
+    if (!token) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const [tournaments, total] = await Promise.all([
-      db.tournament.findMany({
-        where,
-        include: {
-          organizer: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-            },
-          },
-          teams: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          _count: {
-            select: {
-              teams: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      db.tournament.count({ where }),
-    ]);
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
 
-    return NextResponse.json({
-      tournaments,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
+    const pendingTournaments = await db.pendingTournament.findMany({
+      where: {
+        organizerId: decoded.userId,
+        status: 'PENDING_PAYMENT',
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
+
+    return NextResponse.json({
+      pendingTournaments,
+    });
   } catch (error) {
-    console.error('Tournaments fetch error:', error);
+    console.error('Error fetching pending tournaments:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch tournaments' },
+      { error: 'Failed to fetch pending tournaments' },
       { status: 500 }
     );
   }

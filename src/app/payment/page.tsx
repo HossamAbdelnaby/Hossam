@@ -51,18 +51,41 @@ export default function PaymentPage() {
 
     const paymentId = searchParams.get('paymentId')
     const tournamentId = searchParams.get('tournamentId')
+    const pendingTournamentId = searchParams.get('pendingTournamentId')
     const clanId = searchParams.get('clanId')
     const packageType = searchParams.get('package')
 
-    // Simulate fetching payment details
+    // Fetch payment details from API
     const fetchPaymentDetails = async () => {
       try {
         setLoading(true)
         
-        // This would be an API call in real implementation
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
-        if (tournamentId) {
+        if (pendingTournamentId) {
+          // Fetch pending tournament details
+          const response = await fetch(`/api/tournaments/pending`)
+          if (response.ok) {
+            const data = await response.json()
+            const pendingTournament = data.pendingTournaments.find((pt: any) => pt.id === pendingTournamentId)
+            
+            if (pendingTournament) {
+              setPaymentDetails({
+                id: `pay_${Date.now()}`,
+                type: 'tournament',
+                amount: pendingTournament.packagePrice,
+                currency: pendingTournament.packageCurrency,
+                description: `Tournament Package - ${pendingTournament.packageType.replace(/_/g, ' ')}`,
+                status: 'pending',
+                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                metadata: { pendingTournamentId, packageType: pendingTournament.packageType }
+              })
+            } else {
+              setError('Pending tournament not found')
+            }
+          } else {
+            setError('Failed to fetch pending tournament details')
+          }
+        } else if (tournamentId) {
+          // Legacy support for old tournament IDs
           setPaymentDetails({
             id: `pay_${Date.now()}`,
             type: 'tournament',
@@ -98,6 +121,7 @@ export default function PaymentPage() {
           setError('No payment details found')
         }
       } catch (err) {
+        console.error('Error fetching payment details:', err)
         setError('Failed to load payment details')
       } finally {
         setLoading(false)
@@ -109,27 +133,58 @@ export default function PaymentPage() {
 
   const handlePaymentSuccess = async (paymentData: any) => {
     try {
-      // Simulate API call to process payment
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const pendingTournamentId = paymentDetails?.metadata?.pendingTournamentId
       
-      toast({
-        title: "Payment Successful!",
-        description: "Your payment has been processed successfully.",
-        variant: "default",
-      })
+      if (pendingTournamentId) {
+        // Create tournament after payment
+        const response = await fetch('/api/tournaments/create-after-payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            pendingTournamentId,
+            paymentId: paymentData.id || `pay_${Date.now()}`
+          }),
+        })
 
-      // Redirect based on payment type
-      if (paymentDetails?.type === 'tournament') {
-        router.push('/tournaments')
-      } else if (paymentDetails?.type === 'clan') {
-        router.push('/cwl')
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to create tournament after payment')
+        }
+
+        const data = await response.json()
+        
+        toast({
+          title: "Payment Successful!",
+          description: "Your tournament has been created successfully.",
+          variant: "default",
+        })
+
+        // Redirect to the created tournament
+        router.push(`/tournaments/${data.tournament.id}`)
       } else {
-        router.push('/dashboard')
+        // Handle other payment types (legacy)
+        toast({
+          title: "Payment Successful!",
+          description: "Your payment has been processed successfully.",
+          variant: "default",
+        })
+
+        // Redirect based on payment type
+        if (paymentDetails?.type === 'tournament') {
+          router.push('/tournaments')
+        } else if (paymentDetails?.type === 'clan') {
+          router.push('/cwl')
+        } else {
+          router.push('/dashboard')
+        }
       }
     } catch (error) {
+      console.error('Payment success handling error:', error)
       toast({
-        title: "Payment Failed",
-        description: "There was an error processing your payment. Please try again.",
+        title: "Payment Processing Error",
+        description: error instanceof Error ? error.message : "There was an error processing your payment. Please contact support.",
         variant: "destructive",
       })
     }

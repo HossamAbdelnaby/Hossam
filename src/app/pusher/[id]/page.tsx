@@ -170,7 +170,7 @@ export default function PusherProfilePage() {
               <div>
                 <h1 className="text-3xl font-bold mb-2">{pusher.realName}</h1>
                 <p className="text-muted-foreground mb-3">
-                  {pusher.user.name || pusher.user.email}
+                  {pusher.user.name || pusher.user.username}
                 </p>
                 <div className="flex items-center gap-3 flex-wrap">
                   <Badge variant={getStatusColor(pusher.status)}>
@@ -364,7 +364,7 @@ export default function PusherProfilePage() {
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-muted-foreground" />
-                <span>{pusher.user.name || pusher.user.email}</span>
+                <span>{pusher.user.name || pusher.user.username}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-muted-foreground" />
