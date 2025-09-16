@@ -20,7 +20,8 @@ import {
   Copy,
   Check,
   Crown,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FileText
 } from 'lucide-react'
 
 interface ProfileDialogProps {
@@ -30,6 +31,7 @@ interface ProfileDialogProps {
     username: string
     name?: string
     phone?: string
+    description?: string
     role: string
     language: string
     avatar?: string
@@ -248,6 +250,18 @@ export function ProfileDialog({ user, onLogout, children }: ProfileDialogProps) 
 
           {/* Profile Details */}
           <div className="space-y-4">
+            {user.description && (
+              <div className="flex items-start gap-3 group">
+                <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-blue-900">About Me</p>
+                  <p className="text-sm text-blue-700 leading-relaxed">{user.description}</p>
+                </div>
+              </div>
+            )}
+
             {user.phone && (
               <div className="flex items-center gap-3 group">
                 <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">

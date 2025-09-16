@@ -20,6 +20,7 @@ model User {
   phone         String?
   avatar        String?
   photoUrl      String?
+  description   String?   // Personal information/bio
   role          UserRole  @default(USER)
   language      String    @default("en") // "en" or "ar"
   createdAt     DateTime  @default(now())

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken'
 import { db } from '@/lib/db'
 import { logAuthActivity, getClientIP, getUserAgent } from '@/lib/activity-logger'
 
