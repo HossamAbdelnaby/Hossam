@@ -236,6 +236,8 @@ model Pusher {
   trophies       Int
   realName       String
   profilePicture String?
+  description    String?
+  tagPlayer      String?
   price          Float
   paymentMethod  String
   negotiation    Boolean     @default(false)

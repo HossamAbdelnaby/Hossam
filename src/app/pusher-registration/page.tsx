@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { useAuth } from "@/contexts/auth-context";
 import { 
   ArrowLeft, 
@@ -37,6 +38,8 @@ interface PusherProfile {
   trophies: number;
   realName: string;
   profilePicture?: string;
+  description?: string;
+  tagPlayer?: string;
   price: number;
   paymentMethod: string;
   negotiation: boolean;
@@ -77,6 +80,8 @@ export default function PusherRegistrationPage() {
     trophies: "",
     realName: "",
     profilePicture: "",
+    description: "",
+    tagPlayer: "",
     price: "",
     paymentMethod: "",
     negotiation: false,
@@ -103,6 +108,8 @@ export default function PusherRegistrationPage() {
           trophies: data.pusher.trophies.toString(),
           realName: data.pusher.realName,
           profilePicture: data.pusher.profilePicture || "",
+          description: data.pusher.description || "",
+          tagPlayer: data.pusher.tagPlayer || "",
           price: data.pusher.price.toString(),
           paymentMethod: data.pusher.paymentMethod,
           negotiation: data.pusher.negotiation,
@@ -183,6 +190,8 @@ export default function PusherRegistrationPage() {
           trophies,
           realName: formData.realName.trim(),
           profilePicture: formData.profilePicture.trim() || null,
+          description: formData.description.trim() || null,
+          tagPlayer: formData.tagPlayer.trim() || null,
           price,
           paymentMethod: formData.paymentMethod,
           negotiation: formData.negotiation,
@@ -318,7 +327,16 @@ export default function PusherRegistrationPage() {
               Tell us about yourself and your Clash of Clans experience
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Profile Picture Upload */}
+            <div className="space-y-4">
+              <Label>Profile Picture</Label>
+              <AvatarUpload 
+                currentAvatar={formData.profilePicture}
+                onAvatarChange={(url) => handleInputChange('profilePicture', url)}
+              />
+            </div>
+            
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="realName">Real Name *</Label>
@@ -348,15 +366,46 @@ export default function PusherRegistrationPage() {
               </div>
             </div>
             
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tagPlayer">Player Tag</Label>
+                <Input
+                  id="tagPlayer"
+                  value={formData.tagPlayer}
+                  onChange={(e) => handleInputChange('tagPlayer', e.target.value)}
+                  placeholder="#ABC123XYZ"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your Clash of Clans player tag (starts with #)
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="profilePicture">Profile Picture URL (Optional)</Label>
+                <Input
+                  id="profilePicture"
+                  value={formData.profilePicture}
+                  onChange={(e) => handleInputChange('profilePicture', e.target.value)}
+                  placeholder="https://example.com/profile.jpg"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Or use the upload button above
+                </p>
+              </div>
+            </div>
+            
             <div className="space-y-2">
-              <Label htmlFor="profilePicture">Profile Picture URL</Label>
-              <Input
-                id="profilePicture"
-                value={formData.profilePicture}
-                onChange={(e) => handleInputChange('profilePicture', e.target.value)}
-                placeholder="https://example.com/profile.jpg"
-                type="url"
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Tell us about your experience, play style, achievements, and what makes you a great pusher..."
+                rows={4}
               />
+              <p className="text-xs text-muted-foreground">
+                Share your experience, play style, and what makes you a great pusher
+              </p>
             </div>
           </CardContent>
         </Card>

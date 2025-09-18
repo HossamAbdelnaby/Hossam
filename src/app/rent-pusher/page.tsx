@@ -25,6 +25,7 @@ import {
   Star,
   User,
   Globe,
+  Shield,
   CheckCircle,
   Loader2,
   Send,
@@ -36,6 +37,8 @@ interface Pusher {
   trophies: number;
   realName: string;
   profilePicture?: string;
+  description?: string;
+  tagPlayer?: string;
   price: number;
   paymentMethod: string;
   negotiation: boolean;
@@ -310,8 +313,17 @@ export default function RentPusherPage() {
                 <Card key={pusher.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                        <User className="w-6 h-6 text-primary-foreground" />
+                      {/* Profile Picture */}
+                      <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {pusher.profilePicture ? (
+                          <img 
+                            src={pusher.profilePicture} 
+                            alt={pusher.realName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-6 h-6 text-primary-foreground" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-lg line-clamp-1">
@@ -351,6 +363,23 @@ export default function RentPusherPage() {
                         <div className="text-xs text-muted-foreground">Price</div>
                       </div>
                     </div>
+                    
+                    {/* Player Tag */}
+                    {pusher.tagPlayer && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Shield className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-mono">{pusher.tagPlayer}</span>
+                      </div>
+                    )}
+                    
+                    {/* Description */}
+                    {pusher.description && (
+                      <div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {pusher.description}
+                        </p>
+                      </div>
+                    )}
                     
                     {/* Details */}
                     <div className="space-y-2">

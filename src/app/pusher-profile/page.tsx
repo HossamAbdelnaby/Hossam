@@ -31,6 +31,8 @@ interface PusherProfile {
   trophies: number;
   realName: string;
   profilePicture?: string;
+  description?: string;
+  tagPlayer?: string;
   price: number;
   paymentMethod: string;
   negotiation: boolean;
@@ -134,6 +136,30 @@ export default function PusherProfilePage() {
       setDeleteConfirm(false);
     } finally {
       setDeleteLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: 'AVAILABLE' | 'UNAVAILABLE') => {
+    try {
+      const response = await fetch('/api/pusher/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update status');
+      }
+
+      // Refresh profile to get updated status
+      fetchProfile();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update status');
     }
   };
 
@@ -279,7 +305,21 @@ export default function PusherProfilePage() {
                 Profile Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Profile Picture */}
+              {profile.profilePicture && (
+                <div>
+                  <h4 className="font-medium mb-2">Profile Picture</h4>
+                  <div className="w-32 h-32 rounded-lg overflow-hidden">
+                    <img 
+                      src={profile.profilePicture} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+              
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-medium mb-2">Contact Information</h4>
@@ -292,6 +332,12 @@ export default function PusherProfilePage() {
                       <Globe className="w-4 h-4 text-muted-foreground" />
                       <span>{profile.paymentMethod}</span>
                     </div>
+                    {profile.tagPlayer && (
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-muted-foreground" />
+                        <span>{profile.tagPlayer}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -306,6 +352,26 @@ export default function PusherProfilePage() {
                       <Clock className="w-4 h-4 text-muted-foreground" />
                       <span>{profile.availability === 'STAY' ? 'Full Season Availability' : 'End of Season Only'}</span>
                     </div>
+                    {profile.tagPlayer && (
+                      <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-md">
+                        <Shield className="w-4 h-4 text-primary" />
+                        <span className="font-medium">Player Tag:</span>
+                        <span className="font-mono text-xs">{profile.tagPlayer}</span>
+                      </div>
+                    )}
+                    {profile.description && (
+                      <div className="mt-3 p-3 bg-muted/30 rounded-md">
+                        <div className="flex items-start gap-2">
+                          <MessageCircle className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <span className="font-medium text-sm">Service Description:</span>
+                            <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+                              {profile.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {profile.negotiation && (
                       <div className="flex items-center gap-2">
                         <MessageCircle className="w-4 h-4 text-muted-foreground" />
@@ -315,19 +381,6 @@ export default function PusherProfilePage() {
                   </div>
                 </div>
               </div>
-              
-              {profile.profilePicture && (
-                <div>
-                  <h4 className="font-medium mb-2">Profile Picture</h4>
-                  <div className="w-32 h-32 rounded-lg overflow-hidden">
-                    <img 
-                      src={profile.profilePicture} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -463,14 +516,21 @@ export default function PusherProfilePage() {
               </Button>
               
               {profile.status === 'AVAILABLE' && (
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => handleStatusChange('UNAVAILABLE')}
+                >
                   <Clock className="w-4 h-4 mr-2" />
                   Mark as Unavailable
                 </Button>
               )}
               
               {profile.status === 'UNAVAILABLE' && (
-                <Button className="w-full">
+                <Button 
+                  className="w-full"
+                  onClick={() => handleStatusChange('AVAILABLE')}
+                >
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Mark as Available
                 </Button>

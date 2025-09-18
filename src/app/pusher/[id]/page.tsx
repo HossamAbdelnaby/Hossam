@@ -31,6 +31,8 @@ interface PusherProfile {
   trophies: number;
   realName: string;
   profilePicture?: string;
+  description?: string;
+  tagPlayer?: string;
   price: number;
   paymentMethod: string;
   negotiation: boolean;
@@ -281,6 +283,30 @@ export default function PusherProfilePage() {
                   </div>
                 </div>
               </div>
+              
+              {/* Player Tag */}
+              {pusher.tagPlayer && (
+                <div>
+                  <h4 className="font-medium mb-2">Player Information</h4>
+                  <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-md">
+                    <Shield className="w-4 h-4 text-primary" />
+                    <span className="font-medium">Player Tag:</span>
+                    <span className="font-mono text-sm">{pusher.tagPlayer}</span>
+                  </div>
+                </div>
+              )}
+              
+              {/* Description */}
+              {pusher.description && (
+                <div>
+                  <h4 className="font-medium mb-2">Service Description</h4>
+                  <div className="p-4 bg-muted/30 rounded-md">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {pusher.description}
+                    </p>
+                  </div>
+                </div>
+              )}
               
               <div>
                 <h4 className="font-medium mb-2">Experience</h4>
