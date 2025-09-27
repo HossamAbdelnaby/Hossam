@@ -23,7 +23,8 @@ import {
   LogOut,
   User,
   MessageCircle,
-  Shield
+  Shield,
+  Crown
 } from "lucide-react";
 
 const navigation = {
@@ -33,6 +34,7 @@ const navigation = {
     { name: "Available Tournaments", href: "/tournaments", icon: Trophy },
     { name: "Player for Hire", href: "/pusher-registration", icon: UserPlus },
     { name: "Rent Pusher", href: "/rent-pusher", icon: Search },
+    { name: "Clan for Hire", href: "/rent-clan", icon: Crown },
     { name: "CWL Clan Registration", href: "/cwl/register", icon: Users },
     { name: "Join CWL Clans", href: "/cwl", icon: Users },
     { name: "Extra Services", href: "/services", icon: Settings },
@@ -43,6 +45,7 @@ const navigation = {
     { name: "البطولات المتاحة", href: "/tournaments", icon: Trophy },
     { name: "لاعب للإيجار", href: "/pusher-registration", icon: UserPlus },
     { name: "استئجار لاعب", href: "/rent-pusher", icon: Search },
+    { name: "عشيرة للإيجار", href: "/rent-clan", icon: Crown },
     { name: "تسجيل عشيرة CWL", href: "/cwl/register", icon: Users },
     { name: "الانضمام لعشائر CWL", href: "/cwl", icon: Users },
     { name: "خدمات إضافية", href: "/services", icon: Settings },

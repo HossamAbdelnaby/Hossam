@@ -106,7 +106,8 @@ export default function PusherProfilePage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update contract');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update contract');
       }
 
       // Refresh profile to get updated contracts
@@ -435,6 +436,30 @@ export default function PusherProfilePage() {
                             <XCircle className="w-4 h-4" />
                             Reject
                           </Button>
+                        </div>
+                      )}
+                      
+                      {contract.status === 'ACCEPTED' && contract.payment && contract.payment.status === 'PENDING' && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="gap-1">
+                            <Clock className="w-3 h-3" />
+                            Awaiting Payment
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            Client needs to pay ${contract.payment.amount}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {contract.status === 'ACCEPTED' && contract.payment && contract.payment.status === 'COMPLETED' && (
+                        <div className="flex items-center gap-2">
+                          <Badge variant="default" className="gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Paid
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            Payment completed
+                          </span>
                         </div>
                       )}
                     </div>

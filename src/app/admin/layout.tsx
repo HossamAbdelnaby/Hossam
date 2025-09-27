@@ -24,7 +24,8 @@ import {
   Edit,
   UserCheck,
   Database,
-  Clock
+  Clock,
+  Crown
 } from "lucide-react";
 
 interface AdminLayoutProps {
@@ -55,6 +56,12 @@ const sidebarItems = [
     href: "/admin/clans",
     icon: Shield,
     description: "Manage CWL clans"
+  },
+  {
+    title: "Clan for Hire",
+    href: "/admin/clan-for-hire",
+    icon: Crown,
+    description: "Manage rental clans"
   },
   {
     title: "Tournaments",

@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
                 name: true,
               },
             },
+            payment: true, // Include payment relationship
           },
           orderBy: {
             createdAt: 'desc',

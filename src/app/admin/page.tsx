@@ -31,7 +31,8 @@ import {
   Activity,
   Server,
   Globe,
-  UserCheck
+  UserCheck,
+  Crown
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -288,6 +289,13 @@ export default function AdminDashboard() {
           <a href="/admin/payments">
             <CreditCard className="h-6 w-6 mb-2" />
             <span className="text-xs">Payments</span>
+          </a>
+        </Button>
+        
+        <Button variant="outline" className="h-20 flex-col" asChild>
+          <a href="/admin/clan-for-hire">
+            <Crown className="h-6 w-6 mb-2" />
+            <span className="text-xs">Clan for Hire</span>
           </a>
         </Button>
       </div>

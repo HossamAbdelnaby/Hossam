@@ -275,6 +275,20 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>My Contracts</CardTitle>
+            <CardDescription>
+              View and manage your player rental contracts
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full" variant="outline" onClick={() => router.push('/contracts')}>
+              View Contracts
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Payment History</CardTitle>
             <CardDescription>
               View your payment transactions and history

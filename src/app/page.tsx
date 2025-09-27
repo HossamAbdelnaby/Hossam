@@ -85,6 +85,12 @@ export default function Home() {
       href: "/cwl"
     },
     {
+      icon: Shield,
+      title: "Clan for Hire",
+      description: "Hire elite clans for your gaming needs or register your clan for hire.",
+      href: "/rent-clan"
+    },
+    {
       icon: Settings,
       title: "Extra Services",
       description: "Get training, base analysis, and custom base designs from experts.",

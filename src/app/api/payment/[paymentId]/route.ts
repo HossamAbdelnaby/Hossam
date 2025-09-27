@@ -1,28 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyToken } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { notifications } from '@/lib/notifications/send-notification'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const token = request.cookies.get('auth-token')?.value
     
-    if (!session?.user?.id) {
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
     const { paymentId } = await params
     const body = await request.json()
     const { status, transactionId, failureReason, paymentDetails } = body
 
-    // Find the payment
+    // Find the payment with contract details
     const payment = await db.payment.findFirst({
       where: {
         id: paymentId,
-        userId: session.user.id
+        userId: decoded.userId
+      },
+      include: {
+        contract: {
+          include: {
+            pusher: {
+              include: {
+                user: true
+              }
+            },
+            client: true
+          }
+        }
       }
     })
 
@@ -56,6 +73,33 @@ export async function PATCH(
       where: { id: paymentId },
       data: updateData
     })
+
+    // If payment is completed and it's for a contract, send notifications
+    if (status === 'COMPLETED' && payment.contract) {
+      // Update contract status to COMPLETED
+      await db.contract.update({
+        where: { id: payment.contractId },
+        data: {
+          status: 'COMPLETED'
+        }
+      })
+
+      // Send notification to the pusher (player)
+      await notifications.contractPaymentCompleted(
+        payment.contract.pusher.userId,
+        payment.contract.pusher.realName,
+        payment.amount
+      )
+
+      // Send notification to the client (payer)
+      await notifications.contractPaymentCompleted(
+        payment.contract.clientId,
+        payment.contract.pusher.realName,
+        payment.amount
+      )
+
+      console.log('Sent payment completion notifications for contract')
+    }
 
     // If payment is completed and it's for a clan application, update the application status
     if (status === 'COMPLETED' && payment.clanApplicationId) {
@@ -92,10 +136,15 @@ export async function GET(
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const token = request.cookies.get('auth-token')?.value
     
-    if (!session?.user?.id) {
+    if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const decoded = verifyToken(token)
+    if (!decoded) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
     const { paymentId } = await params
@@ -103,7 +152,7 @@ export async function GET(
     const payment = await db.payment.findFirst({
       where: {
         id: paymentId,
-        userId: session.user.id
+        userId: decoded.userId
       },
       include: {
         tournament: {
@@ -126,6 +175,24 @@ export async function GET(
             name: true,
             playerTag: true,
             status: true
+          }
+        },
+        contract: {
+          include: {
+            pusher: {
+              select: {
+                id: true,
+                realName: true,
+                price: true
+              }
+            },
+            client: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
           }
         }
       }
@@ -152,7 +219,8 @@ export async function GET(
         failureReason: payment.failureReason,
         tournament: payment.tournament,
         clan: payment.clan,
-        clanApplication: payment.clanApplication
+        clanApplication: payment.clanApplication,
+        contract: payment.contract
       }
     })
 

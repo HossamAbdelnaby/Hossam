@@ -29,7 +29,8 @@ import {
   CheckCircle,
   Loader2,
   Send,
-  Plus
+  Plus,
+  Handshake
 } from "lucide-react";
 
 interface Pusher {
@@ -73,6 +74,16 @@ export default function RentPusherPage() {
   });
   const [submittingContract, setSubmittingContract] = useState(false);
   const [contractSuccess, setContractSuccess] = useState(false);
+  
+  // Negotiation dialog state
+  const [selectedPusherForNegotiation, setSelectedPusherForNegotiation] = useState<Pusher | null>(null);
+  const [showNegotiationDialog, setShowNegotiationDialog] = useState(false);
+  const [negotiationForm, setNegotiationForm] = useState({
+    message: "",
+    proposedPrice: "",
+  });
+  const [submittingNegotiation, setSubmittingNegotiation] = useState(false);
+  const [negotiationSuccess, setNegotiationSuccess] = useState(false);
   
   const { user } = useAuth();
   const router = useRouter();
@@ -163,6 +174,51 @@ export default function RentPusherPage() {
       setError(err instanceof Error ? err.message : 'Failed to send contract request');
     } finally {
       setSubmittingContract(false);
+    }
+  };
+
+  const handleNegotiate = (pusher: Pusher) => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    setSelectedPusherForNegotiation(pusher);
+    setShowNegotiationDialog(true);
+  };
+
+  const handleNegotiationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPusherForNegotiation || !user) return;
+
+    setSubmittingNegotiation(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/pusher/negotiation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pusherId: selectedPusherForNegotiation.id,
+          message: negotiationForm.message,
+          proposedPrice: parseFloat(negotiationForm.proposedPrice),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send negotiation request');
+      }
+
+      setNegotiationSuccess(true);
+      setShowNegotiationDialog(false);
+      setNegotiationForm({ message: "", proposedPrice: "" });
+      setSelectedPusherForNegotiation(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send negotiation request');
+    } finally {
+      setSubmittingNegotiation(false);
     }
   };
 
@@ -281,6 +337,15 @@ export default function RentPusherPage() {
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
             Contract request sent successfully! The pusher will review your request.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {negotiationSuccess && (
+        <Alert className="mb-6 border-green-200 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            Negotiation request sent successfully! The pusher will review your offer.
           </AlertDescription>
         </Alert>
       )}
@@ -410,6 +475,17 @@ export default function RentPusherPage() {
                       >
                         {pusher.status === 'AVAILABLE' ? 'Hire Pusher' : 'Unavailable'}
                       </Button>
+                      
+                      {pusher.negotiation && pusher.status === 'AVAILABLE' && (
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleNegotiate(pusher)}
+                          title="Negotiate Price"
+                        >
+                          <Handshake className="w-4 h-4" />
+                        </Button>
+                      )}
                       
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/pusher/${pusher.id}`}>
@@ -553,6 +629,72 @@ export default function RentPusherPage() {
                     Send Request
                   </>
                 )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Negotiation Dialog */}
+      <Dialog open={showNegotiationDialog} onOpenChange={setShowNegotiationDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Negotiate with {selectedPusherForNegotiation?.realName}</DialogTitle>
+            <DialogDescription>
+              Send a negotiation offer with your proposed price. The pusher will review your offer and respond.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleNegotiationSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="proposedPrice">Proposed Price (USD)</Label>
+              <Input
+                id="proposedPrice"
+                type="number"
+                step="0.01"
+                min="0.01"
+                placeholder="Enter your proposed price"
+                value={negotiationForm.proposedPrice}
+                onChange={(e) => setNegotiationForm(prev => ({ ...prev, proposedPrice: e.target.value }))}
+                required
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Current price: ${selectedPusherForNegotiation?.price}
+              </p>
+            </div>
+            
+            <div>
+              <Label htmlFor="message">Message</Label>
+              <Textarea
+                id="message"
+                placeholder="Explain why you're proposing this price and any other details..."
+                value={negotiationForm.message}
+                onChange={(e) => setNegotiationForm(prev => ({ ...prev, message: e.target.value }))}
+                className="min-h-[100px]"
+                required
+              />
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={submittingNegotiation} className="flex-1">
+                {submittingNegotiation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Handshake className="w-4 h-4 mr-2" />
+                    Send Offer
+                  </>
+                )}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowNegotiationDialog(false)}
+                disabled={submittingNegotiation}
+              >
+                Cancel
               </Button>
             </div>
           </form>

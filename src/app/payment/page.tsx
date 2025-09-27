@@ -53,6 +53,7 @@ export default function PaymentPage() {
     const tournamentId = searchParams.get('tournamentId')
     const pendingTournamentId = searchParams.get('pendingTournamentId')
     const clanId = searchParams.get('clanId')
+    const contractId = searchParams.get('contractId')
     const packageType = searchParams.get('package')
 
     // Fetch payment details from API
@@ -60,7 +61,33 @@ export default function PaymentPage() {
       try {
         setLoading(true)
         
-        if (pendingTournamentId) {
+        if (contractId) {
+          // Fetch contract payment details
+          const response = await fetch(`/api/payment/${paymentId}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.payment && data.payment.contract) {
+              setPaymentDetails({
+                id: data.payment.id,
+                type: 'player_rental',
+                amount: data.payment.amount,
+                currency: data.payment.currency,
+                description: data.payment.description,
+                status: data.payment.status === 'COMPLETED' ? 'completed' : 'pending',
+                dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+                metadata: { 
+                  contractId, 
+                  paymentId: data.payment.id,
+                  pusherName: data.payment.contract.pusher.realName
+                }
+              })
+            } else {
+              setError('Contract payment not found')
+            }
+          } else {
+            setError('Failed to fetch contract payment details')
+          }
+        } else if (pendingTournamentId) {
           // Fetch pending tournament details
           const response = await fetch(`/api/tournaments/pending`)
           if (response.ok) {
@@ -133,9 +160,38 @@ export default function PaymentPage() {
 
   const handlePaymentSuccess = async (paymentData: any) => {
     try {
+      const contractId = paymentDetails?.metadata?.contractId
+      const paymentId = paymentDetails?.metadata?.paymentId
       const pendingTournamentId = paymentDetails?.metadata?.pendingTournamentId
       
-      if (pendingTournamentId) {
+      if (contractId && paymentId) {
+        // Update contract payment status
+        const response = await fetch(`/api/payment/${paymentId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            status: 'COMPLETED',
+            transactionId: paymentData.id || `txn_${Date.now()}`,
+            paymentDetails: paymentData
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to update contract payment')
+        }
+
+        toast({
+          title: "Payment Successful!",
+          description: `Your payment for ${paymentDetails.metadata.pusherName} has been processed successfully.`,
+          variant: "default",
+        })
+
+        // Redirect to dashboard
+        router.push('/dashboard')
+      } else if (pendingTournamentId) {
         // Create tournament after payment
         const response = await fetch('/api/tournaments/create-after-payment', {
           method: 'POST',
