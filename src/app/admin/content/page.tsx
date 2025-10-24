@@ -1,286 +1,289 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from 'react'
 import { 
   FileText, 
   Plus, 
+  Search, 
+  Filter, 
   Edit, 
-  Save, 
-  X,
-  CheckCircle,
-  AlertTriangle,
-  Search,
-  Image as ImageIcon,
-  Code,
+  Trash2, 
+  Eye, 
+  Upload,
+  Image,
+  Video,
   File,
-  Globe,
-  Type,
-  Hash
-} from "lucide-react";
+  Folder,
+  Save,
+  Clock,
+  User,
+  Calendar,
+  Tag
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 
-interface WebsiteContent {
-  id: string;
-  key: string;
-  title?: string;
-  content: string;
-  type: 'TEXT' | 'HTML' | 'MARKDOWN' | 'IMAGE_URL';
-  isActive: boolean;
-  updatedAt: string;
+interface ContentItem {
+  id: string
+  title: string
+  type: 'article' | 'page' | 'product'
+  status: 'draft' | 'published' | 'archived'
+  category: string
+  author: string
+  publishDate: string
+  lastModified: string
+  views: number
+  featured: boolean
 }
 
-export default function ContentManagementPage() {
-  const [contents, setContents] = useState<WebsiteContent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingContent, setEditingContent] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ title: "", content: "", type: "TEXT" as const });
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [newContent, setNewContent] = useState({ key: "", title: "", content: "", type: "TEXT" as const });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+interface MediaItem {
+  id: string
+  name: string
+  type: 'image' | 'video' | 'document'
+  size: string
+  uploadDate: string
+  url: string
+}
 
-  useEffect(() => {
-    fetchContents();
-  }, []);
+const mockContent: ContentItem[] = [
+  {
+    id: '1',
+    title: 'Getting Started with Clash Tournaments',
+    type: 'article',
+    status: 'published',
+    category: 'Tutorial',
+    author: 'John Doe',
+    publishDate: '2024-01-15',
+    lastModified: '2024-01-14',
+    views: 1234,
+    featured: true
+  },
+  {
+    id: '2',
+    title: 'About Us',
+    type: 'page',
+    status: 'published',
+    category: 'Company',
+    author: 'Jane Smith',
+    publishDate: '2024-01-10',
+    lastModified: '2024-01-09',
+    views: 567,
+    featured: false
+  },
+  {
+    id: '3',
+    title: 'Premium Tournament Pass',
+    type: 'product',
+    status: 'draft',
+    category: 'Products',
+    author: 'Mike Johnson',
+    publishDate: '',
+    lastModified: '2024-01-18',
+    views: 0,
+    featured: false
+  },
+  {
+    id: '4',
+    title: 'Tournament Rules and Guidelines',
+    type: 'article',
+    status: 'published',
+    category: 'Rules',
+    author: 'Sarah Wilson',
+    publishDate: '2024-01-08',
+    lastModified: '2024-01-07',
+    views: 890,
+    featured: true
+  },
+  {
+    id: '5',
+    title: 'Contact Page',
+    type: 'page',
+    status: 'archived',
+    category: 'Company',
+    author: 'Tom Brown',
+    publishDate: '2024-01-05',
+    lastModified: '2024-01-04',
+    views: 234,
+    featured: false
+  }
+]
 
-  const fetchContents = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/admin/content');
-      if (response.ok) {
-        const data = await response.json();
-        setContents(data.contents || []);
-      }
-    } catch (error) {
-      console.error('Error fetching contents:', error);
-    } finally {
-      setLoading(false);
+const mockMedia: MediaItem[] = [
+  {
+    id: '1',
+    name: 'tournament-banner.jpg',
+    type: 'image',
+    size: '2.4 MB',
+    uploadDate: '2024-01-18',
+    url: '/api/placeholder/300/200'
+  },
+  {
+    id: '2',
+    name: 'intro-video.mp4',
+    type: 'video',
+    size: '15.7 MB',
+    uploadDate: '2024-01-17',
+    url: '/api/placeholder/300/200'
+  },
+  {
+    id: '3',
+    name: 'rules-document.pdf',
+    type: 'document',
+    size: '1.2 MB',
+    uploadDate: '2024-01-16',
+    url: '/api/placeholder/300/200'
+  }
+]
+
+export default function ContentManagement() {
+  const [content, setContent] = useState<ContentItem[]>(mockContent)
+  const [media, setMedia] = useState<MediaItem[]>(mockMedia)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [isCreateContentOpen, setIsCreateContentOpen] = useState(false)
+  const [isEditContentOpen, setIsEditContentOpen] = useState(false)
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null)
+  const [activeTab, setActiveTab] = useState('content')
+
+  const filteredContent = content.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesType = filterType === 'all' || item.type === filterType
+    const matchesStatus = filterStatus === 'all' || item.status === filterStatus
+    return matchesSearch && matchesType && matchesStatus
+  })
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'published': return 'default'
+      case 'draft': return 'secondary'
+      case 'archived': return 'destructive'
+      default: return 'secondary'
     }
-  };
+  }
 
-  const handleEdit = (content: WebsiteContent) => {
-    setEditingContent(content.id);
-    setEditForm({ 
-      title: content.title || "", 
-      content: content.content, 
-      type: content.type 
-    });
-  };
-
-  const handleSave = async (contentId: string) => {
-    try {
-      const response = await fetch(`/api/admin/content/${contentId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
-      });
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Content updated successfully!' });
-        setEditingContent(null);
-        fetchContents();
-      } else {
-        const data = await response.json();
-        setMessage({ type: 'error', text: data.error || 'Failed to update content' });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Network error' });
-    }
-  };
-
-  const handleAddContent = async () => {
-    try {
-      const response = await fetch('/api/admin/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newContent)
-      });
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Content added successfully!' });
-        setShowAddDialog(false);
-        setNewContent({ key: "", title: "", content: "", type: "TEXT" });
-        fetchContents();
-      } else {
-        const data = await response.json();
-        setMessage({ type: 'error', text: data.error || 'Failed to add content' });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Network error' });
-    }
-  };
-
-  const handleToggleActive = async (contentId: string, isActive: boolean) => {
-    try {
-      const response = await fetch(`/api/admin/content/${contentId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive })
-      });
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: `Content ${isActive ? 'activated' : 'deactivated'} successfully!` });
-        fetchContents();
-      } else {
-        const data = await response.json();
-        setMessage({ type: 'error', text: data.error || 'Failed to update content status' });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Network error' });
-    }
-  };
-
-  const filteredContents = contents.filter(content => {
-    const matchesSearch = 
-      content.key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      content.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      content.content.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesType = typeFilter === "all" || content.type === typeFilter;
-
-    return matchesSearch && matchesType;
-  });
-
-  const getTypeIcon = (type: string) => {
+  const getTypeBadgeVariant = (type: string) => {
     switch (type) {
-      case 'TEXT': return Type;
-      case 'HTML': return Code;
-      case 'MARKDOWN': return FileText;
-      case 'IMAGE_URL': return ImageIcon;
-      default: return File;
+      case 'article': return 'default'
+      case 'page': return 'secondary'
+      case 'product': return 'destructive'
+      default: return 'secondary'
     }
-  };
+  }
 
-  const getTypeColor = (type: string) => {
+  const getMediaIcon = (type: string) => {
     switch (type) {
-      case 'TEXT': return 'default';
-      case 'HTML': return 'secondary';
-      case 'MARKDOWN': return 'outline';
-      case 'IMAGE_URL': return 'default';
-      default: return 'secondary';
+      case 'image': return <Image className="h-4 w-4" />
+      case 'video': return <Video className="h-4 w-4" />
+      case 'document': return <File className="h-4 w-4" />
+      default: return <File className="h-4 w-4" />
     }
-  };
+  }
 
-  const formatContentPreview = (content: string, type: string, maxLength = 100) => {
-    if (type === 'IMAGE_URL') {
-      return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+  const handleEditContent = (item: ContentItem) => {
+    setSelectedContent(item)
+    setIsEditContentOpen(true)
+  }
+
+  const handleDeleteContent = (id: string) => {
+    setContent(content.filter(item => item.id !== id))
+  }
+
+  const handleDeleteMedia = (id: string) => {
+    setMedia(media.filter(item => item.id !== id))
+  }
+
+  const handleMediaUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files) {
+      Array.from(files).forEach(file => {
+        const newMedia: MediaItem = {
+          id: Date.now().toString(),
+          name: file.name,
+          type: file.type.startsWith('image/') ? 'image' : 
+                file.type.startsWith('video/') ? 'video' : 'document',
+          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+          uploadDate: new Date().toISOString().split('T')[0],
+          url: URL.createObjectURL(file)
+        }
+        setMedia(prev => [newMedia, ...prev])
+      })
     }
-    
-    const plainText = content.replace(/<[^>]*>/g, '').replace(/^[#*`-]\s*/gm, '');
-    return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText;
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid gap-4">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-6 bg-muted rounded w-3/4"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="h-4 bg-muted rounded"></div>
-                  <div className="h-4 bg-muted rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Content Management</h1>
-          <p className="text-muted-foreground">
-            Manage website content, text, and media
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Content Management</h1>
+          <p className="text-gray-600">Create, edit, and manage your website content</p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <Dialog open={isCreateContentOpen} onOpenChange={setIsCreateContentOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Content
+            <Button className="flex items-center">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Content
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Add New Content</DialogTitle>
+              <DialogTitle>Create New Content</DialogTitle>
               <DialogDescription>
-                Create new website content with custom key and type
+                Create a new article, page, or product
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="key">Content Key</Label>
-                <Input
-                  id="key"
-                  value={newContent.key}
-                  onChange={(e) => setNewContent(prev => ({ ...prev, key: e.target.value }))}
-                  placeholder="e.g., homepage_hero_title, footer_copyright"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Unique identifier for this content
-                </p>
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input id="title" placeholder="Enter content title" />
               </div>
-              
-              <div>
-                <Label htmlFor="title">Title (Optional)</Label>
-                <Input
-                  id="title"
-                  value={newContent.title}
-                  onChange={(e) => setNewContent(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Content title or description"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="article">Article</SelectItem>
+                      <SelectItem value="page">Page</SelectItem>
+                      <SelectItem value="product">Product</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Input id="category" placeholder="Enter category" />
+                </div>
               </div>
-              
-              <div>
-                <Label htmlFor="type">Content Type</Label>
-                <Select value={newContent.type} onValueChange={(value: any) => setNewContent(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="TEXT">Plain Text</SelectItem>
-                    <SelectItem value="HTML">HTML</SelectItem>
-                    <SelectItem value="MARKDOWN">Markdown</SelectItem>
-                    <SelectItem value="IMAGE_URL">Image URL</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
-                  value={newContent.content}
-                  onChange={(e) => setNewContent(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Enter your content here..."
-                  rows={6}
+                <Textarea 
+                  id="content" 
+                  rows={8}
+                  placeholder="Write your content here..."
                 />
               </div>
-              
-              <div className="flex gap-2">
-                <Button onClick={handleAddContent} disabled={!newContent.key || !newContent.content}>
-                  Add Content
-                </Button>
-                <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              <div className="flex items-center space-x-2">
+                <Switch id="featured" />
+                <Label htmlFor="featured">Featured Content</Label>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsCreateContentOpen(false)}>
                   Cancel
+                </Button>
+                <Button onClick={() => setIsCreateContentOpen(false)}>
+                  Create Content
                 </Button>
               </div>
             </div>
@@ -288,192 +291,423 @@ export default function ContentManagementPage() {
         </Dialog>
       </div>
 
-      {/* Message */}
-      {message && (
-        <Alert className={message.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-          {message.type === 'success' ? (
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          ) : (
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-          )}
-          <AlertDescription className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-            {message.text}
-          </AlertDescription>
-        </Alert>
-      )}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="content">Content</TabsTrigger>
+          <TabsTrigger value="media">Media Library</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+        </TabsList>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search content by key, title, or content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <select 
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md text-sm"
-            >
-              <option value="all">All Types</option>
-              <option value="TEXT">Text</option>
-              <option value="HTML">HTML</option>
-              <option value="MARKDOWN">Markdown</option>
-              <option value="IMAGE_URL">Image URL</option>
-            </select>
+        {/* Content Tab */}
+        <TabsContent value="content" className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-6 md:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Content</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{content.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  +2 from last month
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Published</CardTitle>
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {content.filter(c => c.status === 'published').length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Live content
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Drafts</CardTitle>
+                <Edit className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {content.filter(c => c.status === 'draft').length}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  In progress
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                <Eye className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {content.reduce((sum, c) => sum + c.views, 0).toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  All time views
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Content Grid */}
-      <div className="grid gap-4">
-        {filteredContents.map((content) => {
-          const TypeIcon = getTypeIcon(content.type);
-          
-          return (
-            <Card key={content.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Hash className="w-4 h-4 text-muted-foreground" />
-                      <code className="text-sm bg-muted px-2 py-1 rounded">{content.key}</code>
-                      <Badge variant={getTypeColor(content.type)} className="text-xs">
-                        <TypeIcon className="w-3 h-3 mr-1" />
-                        {content.type}
-                      </Badge>
-                      <Badge variant={content.isActive ? 'default' : 'secondary'} className="text-xs">
-                        {content.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
-                    
-                    {content.title && (
-                      <h3 className="font-medium">{content.title}</h3>
-                    )}
+          {/* Filters and Search */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Content Library</CardTitle>
+              <CardDescription>
+                Manage all your website content
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search content..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleActive(content.id, !content.isActive)}
-                    >
-                      {content.isActive ? 'Deactivate' : 'Activate'}
+                </div>
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="Filter by type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="article">Article</SelectItem>
+                    <SelectItem value="page">Page</SelectItem>
+                    <SelectItem value="product">Product</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Content Table */}
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Views</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredContent.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{item.title}</div>
+                            {item.featured && (
+                              <Badge variant="secondary" className="mt-1">Featured</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getTypeBadgeVariant(item.type)}>
+                            {item.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusBadgeVariant(item.status)}>
+                            {item.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{item.category}</TableCell>
+                        <TableCell>{item.author}</TableCell>
+                        <TableCell>{item.views.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditContent(item)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteContent(item.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Media Library Tab */}
+        <TabsContent value="media" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Media Library</CardTitle>
+              <CardDescription>
+                Upload and manage your media files
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Upload Area */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-6">
+                <div className="text-center">
+                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="mt-4">
+                    <label htmlFor="media-upload" className="cursor-pointer">
+                      <span className="mt-2 block text-sm font-medium text-gray-900">
+                        Click to upload or drag and drop
+                      </span>
+                      <span className="mt-1 block text-xs text-gray-500">
+                        PNG, JPG, GIF, MP4, PDF up to 10MB
+                      </span>
+                    </label>
+                    <input
+                      id="media-upload"
+                      type="file"
+                      className="sr-only"
+                      multiple
+                      onChange={handleMediaUpload}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Media Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {media.map((item) => (
+                  <Card key={item.id}>
+                    <CardContent className="p-4">
+                      <div className="aspect-video bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+                        {item.type === 'image' ? (
+                          <img
+                            src={item.url}
+                            alt={item.name}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        ) : (
+                          <div className="text-gray-400">
+                            {getMediaIcon(item.type)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-sm truncate">{item.name}</h3>
+                          <Badge variant="outline" className="text-xs">
+                            {item.type}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500">{item.size}</p>
+                        <p className="text-xs text-gray-500">{item.uploadDate}</p>
+                      </div>
+                      <div className="flex justify-end space-x-2 mt-3">
+                        <Button variant="ghost" size="sm">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteMedia(item.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Categories Tab */}
+        <TabsContent value="categories" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Categories</CardTitle>
+              <CardDescription>
+                Manage content categories and tags
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Folder className="h-5 w-5 text-gray-400" />
+                    <span className="font-medium">Tutorial</span>
+                    <Badge variant="secondary">12 items</Badge>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleEdit(content)}
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
+                    <Button variant="ghost" size="sm">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {editingContent === content.id ? (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor={`title-${content.id}`}>Title</Label>
-                      <Input
-                        id={`title-${content.id}`}
-                        value={editForm.title}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
-                        placeholder="Content title"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor={`type-${content.id}`}>Type</Label>
-                      <Select value={editForm.type} onValueChange={(value: any) => setEditForm(prev => ({ ...prev, type: value }))}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="TEXT">Plain Text</SelectItem>
-                          <SelectItem value="HTML">HTML</SelectItem>
-                          <SelectItem value="MARKDOWN">Markdown</SelectItem>
-                          <SelectItem value="IMAGE_URL">Image URL</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor={`content-${content.id}`}>Content</Label>
-                      <Textarea
-                        id={`content-${content.id}`}
-                        value={editForm.content}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, content: e.target.value }))}
-                        placeholder="Enter your content here..."
-                        rows={6}
-                      />
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button onClick={() => handleSave(content.id)}>
-                        <Save className="w-4 h-4 mr-1" />
-                        Save
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setEditingContent(null)}
-                      >
-                        <X className="w-4 h-4 mr-1" />
-                        Cancel
-                      </Button>
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Folder className="h-5 w-5 text-gray-400" />
+                    <span className="font-medium">Company</span>
+                    <Badge variant="secondary">8 items</Badge>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Content Preview</Label>
-                      <div className="mt-1 p-3 bg-muted rounded-md text-sm">
-                        {formatContentPreview(content.content, content.type)}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>Last updated: {new Date(content.updatedAt).toLocaleDateString()}</span>
-                      {content.type === 'IMAGE_URL' && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={content.content} target="_blank" rel="noopener noreferrer">
-                            <ImageIcon className="w-4 h-4 mr-1" />
-                            View Image
-                          </a>
-                        </Button>
-                      )}
-                    </div>
+                  <div className="flex space-x-2">
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Folder className="h-5 w-5 text-gray-400" />
+                    <span className="font-medium">Products</span>
+                    <Badge variant="secondary">5 items</Badge>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Folder className="h-5 w-5 text-gray-400" />
+                    <span className="font-medium">Rules</span>
+                    <Badge variant="secondary">3 items</Badge>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <Button className="mt-4">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Category
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
-      {filteredContents.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-medium mb-2">No content found</h3>
-            <p className="text-muted-foreground mb-4">
-              Try adjusting your search or filters, or create new content
-            </p>
-            <Button onClick={() => setShowAddDialog(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Your First Content
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Edit Content Dialog */}
+      <Dialog open={isEditContentOpen} onOpenChange={setIsEditContentOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Content</DialogTitle>
+            <DialogDescription>
+              Update your content and settings
+            </DialogDescription>
+          </DialogHeader>
+          {selectedContent && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title">Title</Label>
+                <Input id="edit-title" defaultValue={selectedContent.title} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-type">Type</Label>
+                  <Select defaultValue={selectedContent.type}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="article">Article</SelectItem>
+                      <SelectItem value="page">Page</SelectItem>
+                      <SelectItem value="product">Product</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select defaultValue={selectedContent.status}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <Input id="edit-category" defaultValue={selectedContent.category} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-content">Content</Label>
+                <Textarea 
+                  id="edit-content" 
+                  rows={8}
+                  placeholder="Write your content here..."
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="edit-featured" defaultChecked={selectedContent.featured} />
+                <Label htmlFor="edit-featured">Featured Content</Label>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsEditContentOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => setIsEditContentOpen(false)}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
-  );
+  )
 }

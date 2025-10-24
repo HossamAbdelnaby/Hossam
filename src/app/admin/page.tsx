@@ -1,463 +1,388 @@
-"use client";
+'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAuth } from '@/contexts/auth-context'
 import { 
   Users, 
-  Trophy, 
-  DollarSign, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock,
-  FileText,
-  Image,
+  FileText, 
+  Eye, 
+  TrendingUp,
+  DollarSign,
+  Activity,
+  Calendar,
+  AlertCircle,
+  Trophy,
+  Users2,
   CreditCard,
-  BarChart3,
-  Shield,
-  Database,
   Package,
-  Settings,
-  Edit,
-  Eye,
+  Shield,
+  Bell,
+  Zap,
+  Clock,
+  ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
-  Activity,
-  Server,
-  Globe,
-  UserCheck,
-  Crown
+  MoreHorizontal
 } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
-interface DashboardStats {
-  totalUsers: number
-  totalTournaments: number
-  totalRevenue: number
-  activeTournaments: number
-  pendingPayments: number
-  totalFiles: number
-  activeGateways: number
-  recentActivity: Array<{
-    id: string
-    action: string
-    target: string
-    user: string
-    timestamp: string
-  }>
-}
-
-interface SystemHealth {
-  status: 'healthy' | 'warning' | 'error'
-  uptime: string
-  memory: string
-  disk: string
-  cpu: string
-}
-
-export default function AdminDashboard() {
-  const { user } = useAuth()
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
-
-  const fetchDashboardData = async () => {
-    try {
-      setIsLoading(true)
-      
-      // Fetch users and tournaments for basic stats
-      const [usersRes, tournamentsRes, paymentsRes] = await Promise.all([
-        fetch('/api/admin/users'),
-        fetch('/api/admin/tournaments'),
-        fetch('/api/admin/payments')
-      ])
-
-      if (usersRes.ok && tournamentsRes.ok) {
-        const usersData = await usersRes.json()
-        const tournamentsData = await tournamentsRes.json()
-        const paymentsData = paymentsRes.ok ? await paymentsRes.json() : { payments: [] }
-        
-        const totalUsers = usersData.users?.length || 0
-        const totalTournaments = tournamentsData.tournaments?.length || 0
-        const activeTournaments = tournamentsData.tournaments?.filter((t: any) => 
-          t.status === 'IN_PROGRESS' || t.status === 'REGISTRATION_OPEN'
-        ).length || 0
-        const totalRevenue = paymentsData.payments?.filter((p: any) => p.status === 'COMPLETED')
-          .reduce((sum: number, p: any) => sum + p.amount, 0) || 0
-        const pendingPayments = paymentsData.payments?.filter((p: any) => p.status === 'PENDING').length || 0
-        
-        setStats({
-          totalUsers,
-          totalTournaments,
-          totalRevenue,
-          activeTournaments,
-          pendingPayments,
-          totalFiles: 0, // Would fetch from files API
-          activeGateways: 0, // Would fetch from gateways API
-          recentActivity: [
-            {
-              id: '1',
-              action: 'User Registration',
-              target: 'New User',
-              user: 'System',
-              timestamp: new Date().toISOString()
-            },
-            {
-              id: '2',
-              action: 'Tournament Created',
-              target: 'Summer Championship',
-              user: 'Admin',
-              timestamp: new Date(Date.now() - 3600000).toISOString()
-            }
-          ]
-        })
-      }
-
-      // Mock system health data
-      setSystemHealth({
-        status: 'healthy',
-        uptime: '15 days, 4 hours',
-        memory: '2.1 GB / 8 GB',
-        disk: '45 GB / 100 GB',
-        cpu: '12%'
-      })
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-    } finally {
-      setIsLoading(false)
-    }
+const stats = [
+  {
+    title: 'Total Users',
+    value: '2,543',
+    change: '+12.5%',
+    changeType: 'positive',
+    icon: Users,
+    description: 'Active registered users',
+    href: '/admin/users'
+  },
+  {
+    title: 'Tournaments',
+    value: '48',
+    change: '+8.2%',
+    changeType: 'positive',
+    icon: Trophy,
+    description: 'Active tournaments',
+    href: '/admin/tournaments'
+  },
+  {
+    title: 'Total Revenue',
+    value: '$12,345',
+    change: '+5.4%',
+    changeType: 'positive',
+    icon: DollarSign,
+    description: 'Monthly revenue',
+    href: '/admin/payments'
+  },
+  {
+    title: 'Active Clans',
+    value: '156',
+    change: '+15.3%',
+    changeType: 'positive',
+    icon: Users2,
+    description: 'Registered clans',
+    href: '/admin/clans'
   }
+]
 
-  const getHealthColor = (status: string) => {
-    switch (status) {
-      case 'healthy': return 'text-green-600'
-      case 'warning': return 'text-yellow-600'
-      case 'error': return 'text-red-600'
-      default: return 'text-gray-600'
-    }
+const categoryStats = [
+  {
+    title: 'User Management',
+    icon: Users,
+    stats: [
+      { label: 'Total Users', value: '2,543', change: '+12.5%' },
+      { label: 'Active Clans', value: '156', change: '+15.3%' },
+      { label: 'Pushers', value: '89', change: '+5.2%' },
+      { label: 'New Today', value: '23', change: '+8.1%' }
+    ],
+    href: '/admin/users',
+    color: 'blue'
+  },
+  {
+    title: 'Tournaments',
+    icon: Trophy,
+    stats: [
+      { label: 'Active', value: '12', change: '+2' },
+      { label: 'Completed', value: '36', change: '+4' },
+      { label: 'Total Prize Pool', value: '$8,500', change: '+12.3%' },
+      { label: 'Participants', value: '1,234', change: '+18.7%' }
+    ],
+    href: '/admin/tournaments',
+    color: 'yellow'
+  },
+  {
+    title: 'Financial',
+    icon: CreditCard,
+    stats: [
+      { label: 'Revenue', value: '$12,345', change: '+5.4%' },
+      { label: 'Transactions', value: '847', change: '+9.8%' },
+      { label: 'Packages Sold', value: '124', change: '+14.2%' },
+      { label: 'Pending', value: '$2,340', change: '-3.1%' }
+    ],
+    href: '/admin/payments',
+    color: 'green'
+  },
+  {
+    title: 'System',
+    icon: Shield,
+    stats: [
+      { label: 'Uptime', value: '99.9%', change: 'Stable' },
+      { label: 'API Calls', value: '45.2K', change: '+23.1%' },
+      { label: 'Storage Used', value: '78%', change: '+2.3%' },
+      { label: 'Errors', value: '3', change: '-45.2%' }
+    ],
+    href: '/admin/security',
+    color: 'purple'
   }
+]
 
-  const getHealthIcon = (status: string) => {
-    switch (status) {
-      case 'healthy': return CheckCircle
-      case 'warning': return AlertTriangle
-      case 'error': return AlertTriangle
-      default: return Activity
-    }
+const recentActivity = [
+  {
+    id: 1,
+    user: 'John Doe',
+    action: 'Registered for tournament',
+    target: 'Fortnite Championship',
+    time: '2 minutes ago',
+    type: 'tournament',
+    icon: Trophy
+  },
+  {
+    id: 2,
+    user: 'Jane Smith',
+    action: 'Created new clan',
+    target: 'Elite Squad',
+    time: '15 minutes ago',
+    type: 'clan',
+    icon: Users2
+  },
+  {
+    id: 3,
+    user: 'System',
+    action: 'Payment received',
+    target: '$50 from user@example.com',
+    time: '1 hour ago',
+    type: 'payment',
+    icon: CreditCard
+  },
+  {
+    id: 4,
+    user: 'Admin',
+    action: 'Updated tournament',
+    target: 'CS:GO Championship',
+    time: '2 hours ago',
+    type: 'tournament',
+    icon: Trophy
+  },
+  {
+    id: 5,
+    user: 'Mike Johnson',
+    action: 'Purchased package',
+    target: 'Premium Graphics',
+    time: '3 hours ago',
+    type: 'payment',
+    icon: Package
   }
+]
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-muted rounded w-3/4"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-muted rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )
+const systemHealth = [
+  { name: 'Server CPU', value: 45, status: 'good' },
+  { name: 'Memory Usage', value: 62, status: 'good' },
+  { name: 'Disk Space', value: 78, status: 'warning' },
+  { name: 'Database', value: 23, status: 'good' },
+  { name: 'API Response', value: 120, status: 'good', unit: 'ms' }
+]
+
+const quickActions = [
+  {
+    title: 'Create Tournament',
+    description: 'Set up a new tournament',
+    icon: Trophy,
+    href: '/admin/tournaments',
+    color: 'yellow'
+  },
+  {
+    title: 'Add User',
+    description: 'Create new user account',
+    icon: Users,
+    href: '/admin/users',
+    color: 'blue'
+  },
+  {
+    title: 'View Payments',
+    description: 'Check transactions',
+    icon: CreditCard,
+    href: '/admin/payments',
+    color: 'green'
+  },
+  {
+    title: 'System Status',
+    description: 'Monitor system health',
+    icon: Shield,
+    href: '/admin/security',
+    color: 'purple'
   }
+]
 
+export default function Dashboard() {
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome back, {user?.name || 'Admin'}!</h1>
-          <p className="text-muted-foreground">
-            Here's what's happening with your platform today.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={user?.role === 'SUPER_ADMIN' ? 'destructive' : 'default'}>
-            {user?.role}
-          </Badge>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">Welcome back! Here's what's happening across your platform today.</p>
       </div>
 
       {/* Main Stats Grid */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                Registered users
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Tournaments</CardTitle>
-              <Trophy className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalTournaments}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.activeTournaments} active
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                Total earnings
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingPayments}</div>
-              <p className="text-xs text-muted-foreground">
-                Payments to review
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <Button variant="outline" className="h-20 flex-col" asChild>
-          <a href="/admin/users">
-            <Users className="h-6 w-6 mb-2" />
-            <span className="text-xs">Manage Users</span>
-          </a>
-        </Button>
-        
-        <Button variant="outline" className="h-20 flex-col" asChild>
-          <a href="/admin/tournaments">
-            <Trophy className="h-6 w-6 mb-2" />
-            <span className="text-xs">Tournaments</span>
-          </a>
-        </Button>
-        
-        <Button variant="outline" className="h-20 flex-col" asChild>
-          <a href="/admin/packages">
-            <Package className="h-6 w-6 mb-2" />
-            <span className="text-xs">Package Prices</span>
-          </a>
-        </Button>
-        
-        <Button variant="outline" className="h-20 flex-col" asChild>
-          <a href="/admin/content">
-            <Edit className="h-6 w-6 mb-2" />
-            <span className="text-xs">Content</span>
-          </a>
-        </Button>
-        
-        <Button variant="outline" className="h-20 flex-col" asChild>
-          <a href="/admin/files">
-            <Image className="h-6 w-6 mb-2" alt="Files icon" />
-            <span className="text-xs">Files</span>
-          </a>
-        </Button>
-        
-        <Button variant="outline" className="h-20 flex-col" asChild>
-          <a href="/admin/payments">
-            <CreditCard className="h-6 w-6 mb-2" />
-            <span className="text-xs">Payments</span>
-          </a>
-        </Button>
-        
-        <Button variant="outline" className="h-20 flex-col" asChild>
-          <a href="/admin/clan-for-hire">
-            <Crown className="h-6 w-6 mb-2" />
-            <span className="text-xs">Clan for Hire</span>
-          </a>
-        </Button>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Link key={stat.title} href={stat.href}>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className="h-4 w-4 text-gray-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-gray-600 mt-1 flex items-center">
+                  {stat.changeType === 'positive' ? (
+                    <ArrowUpRight className="h-3 w-3 text-green-600 mr-1" />
+                  ) : (
+                    <ArrowDownRight className="h-3 w-3 text-red-600 mr-1" />
+                  )}
+                  <span className={stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'}>
+                    {stat.change}
+                  </span>
+                  {' '}from last month
+                </p>
+                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
 
-      {/* System Health & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Category Stats */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {categoryStats.map((category) => (
+          <Card key={category.title} className="hover:shadow-md transition-shadow">
+            <Link href={category.href}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{category.title}</CardTitle>
+                <category.icon className={`h-4 w-4 text-${category.color}-600`} />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {category.stats.map((stat, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600">{stat.label}</span>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">{stat.value}</div>
+                        <div className="text-xs text-green-600">{stat.change}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex items-center text-xs text-blue-600">
+                    View all
+                    <ChevronRight className="h-3 w-3 ml-1" />
+                  </div>
+                </div>
+              </CardContent>
+            </Link>
+          </Card>
+        ))}
+      </div>
+
+      {/* Charts and Activity */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Recent Activity */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center">
+                  <Activity className="mr-2 h-5 w-5" />
+                  Recent Activity
+                </CardTitle>
+                <CardDescription>
+                  Latest actions and system events
+                </CardDescription>
+              </div>
+              <Button variant="outline" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-center space-x-4">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    activity.type === 'tournament' ? 'bg-yellow-100' :
+                    activity.type === 'clan' ? 'bg-blue-100' :
+                    activity.type === 'payment' ? 'bg-green-100' :
+                    'bg-gray-100'
+                  }`}>
+                    <activity.icon className={`h-5 w-5 ${
+                      activity.type === 'tournament' ? 'text-yellow-600' :
+                      activity.type === 'clan' ? 'text-blue-600' :
+                      activity.type === 'payment' ? 'text-green-600' :
+                      'text-gray-600'
+                    }`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">
+                      {activity.user} {activity.action.toLowerCase()}
+                    </p>
+                    <p className="text-sm text-gray-500">{activity.target}</p>
+                  </div>
+                  <div className="text-xs text-gray-400">{activity.time}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* System Health */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Server className="h-5 w-5" />
+            <CardTitle className="flex items-center">
+              <TrendingUp className="mr-2 h-5 w-5" />
               System Health
             </CardTitle>
             <CardDescription>
-              Current system status and performance
+              Current system performance
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {systemHealth && (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Status</span>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      const Icon = getHealthIcon(systemHealth.status)
-                      return <Icon className={`h-4 w-4 ${getHealthColor(systemHealth.status)}`} />
-                    })()}
-                    <span className={`text-sm font-medium ${getHealthColor(systemHealth.status)}`}>
-                      {systemHealth.status.charAt(0).toUpperCase() + systemHealth.status.slice(1)}
+          <CardContent>
+            <div className="space-y-4">
+              {systemHealth.map((item) => (
+                <div key={item.name} className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">{item.name}</span>
+                    <span className={item.status === 'good' ? 'text-green-600' : 'text-yellow-600'}>
+                      {item.value}{item.unit || '%'}
                     </span>
                   </div>
+                  <Progress 
+                    value={item.unit ? Math.min(item.value / 2, 100) : item.value} 
+                    className="h-2"
+                  />
                 </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Uptime</span>
-                    <span className="font-medium">{systemHealth.uptime}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Memory Usage</span>
-                    <span className="font-medium">{systemHealth.memory}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Disk Usage</span>
-                    <span className="font-medium">{systemHealth.disk}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>CPU Usage</span>
-                    <span className="font-medium">{systemHealth.cpu}</span>
-                  </div>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription>
-              Latest admin actions and system events
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[200px]">
-              <div className="space-y-3">
-                {stats?.recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 text-sm">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium">{activity.action}</p>
-                      <p className="text-muted-foreground">{activity.target}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.user} • {new Date(activity.timestamp).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Content Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Total Content Items</span>
-                <span className="font-medium">24</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Active Pages</span>
-                <span className="font-medium">18</span>
-              </div>
-              <Button variant="outline" size="sm" className="w-full mt-2" asChild>
-                <a href="/admin/content">Manage Content</a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" alt="File Manager icon" />
-              File Manager
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Total Files</span>
-                <span className="font-medium">{stats?.totalFiles || 0}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Storage Used</span>
-                <span className="font-medium">2.3 GB</span>
-              </div>
-              <Button variant="outline" size="sm" className="w-full mt-2" asChild>
-                <a href="/admin/files">Manage Files</a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserCheck className="h-5 w-5" />
-              User Permissions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Admin Users</span>
-                <span className="font-medium">3</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Custom Permissions</span>
-                <span className="font-medium">12</span>
-              </div>
-              <Button variant="outline" size="sm" className="w-full mt-2" asChild>
-                <a href="/admin/permissions">Manage Permissions</a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>
+            Common tasks and shortcuts
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {quickActions.map((action) => (
+              <Link key={action.title} href={action.href}>
+                <div className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                  <action.icon className={`h-6 w-6 text-${action.color}-600 mb-2`} />
+                  <div className="text-sm font-medium">{action.title}</div>
+                  <div className="text-xs text-gray-500">{action.description}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

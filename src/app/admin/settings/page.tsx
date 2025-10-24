@@ -1,428 +1,362 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Settings, 
-  Save, 
-  RefreshCw, 
-  CheckCircle, 
-  AlertCircle,
-  Database,
-  Server,
-  Globe,
-  Shield,
-  Bell,
-  Mail,
-  Users,
-  Zap,
-  Activity,
-  BarChart3,
-  Key,
-  Clock,
-  Upload,
-  Download
-} from "lucide-react";
+import { useState } from 'react'
+import { Upload, Palette, Globe, Clock, DollarSign, Search, Save, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 
-interface SystemSettings {
-  general: {
-    siteName: string;
-    siteDescription: string;
-    adminEmail: string;
-    timezone: string;
-    language: string;
-    maintenanceMode: boolean;
-  };
-  security: {
-    requireEmailVerification: boolean;
-    twoFactorAuth: boolean;
-    sessionTimeout: number;
-    maxLoginAttempts: number;
-    passwordMinLength: number;
-    passwordExpiry: number;
-  };
-  notifications: {
-    emailNotifications: boolean;
-    pushNotifications: boolean;
-    adminAlerts: boolean;
-    tournamentUpdates: boolean;
-    userRegistration: boolean;
-  };
-  performance: {
-    cacheEnabled: boolean;
-    cacheTimeout: number;
-    maxUploadSize: number;
-    compressionEnabled: boolean;
-    logLevel: string;
-  };
-}
+export default function SiteSettings() {
+  const [logoPreview, setLogoPreview] = useState('/api/placeholder/200/200')
+  const [faviconPreview, setFaviconPreview] = useState('/api/placeholder/32/32')
+  const [bannerPreview, setBannerPreview] = useState('/api/placeholder/1200/300')
 
-interface SystemStatus {
-  uptime: string;
-  memoryUsage: {
-    used: number;
-    total: number;
-    percentage: number;
-  };
-  diskUsage: {
-    used: number;
-    total: number;
-    percentage: number;
-  };
-  cpuUsage: number;
-  activeUsers: number;
-  databaseConnections: number;
-}
-
-export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<SystemSettings>({
-    general: {
-      siteName: "Clash of Clans Tournament Platform",
-      siteDescription: "Professional tournament management platform",
-      adminEmail: "admin@example.com",
-      timezone: "UTC",
-      language: "en",
-      maintenanceMode: false,
-    },
-    security: {
-      requireEmailVerification: true,
-      twoFactorAuth: false,
-      sessionTimeout: 3600,
-      maxLoginAttempts: 5,
-      passwordMinLength: 8,
-      passwordExpiry: 90,
-    },
-    notifications: {
-      emailNotifications: true,
-      pushNotifications: true,
-      adminAlerts: true,
-      tournamentUpdates: true,
-      userRegistration: true,
-    },
-    performance: {
-      cacheEnabled: true,
-      cacheTimeout: 300,
-      maxUploadSize: 10,
-      compressionEnabled: true,
-      logLevel: "info",
-    },
-  });
-
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [exportLoading, setExportLoading] = useState(false);
-  const [importLoading, setImportLoading] = useState(false);
-
-  useEffect(() => {
-    fetchSystemStatus();
-  }, []);
-
-  const fetchSystemStatus = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/admin/system-status');
-      
-      if (response.ok) {
-        const data = await response.json();
-        setSystemStatus(data.status);
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string)
       }
-    } catch (error) {
-      console.error('Error fetching system status:', error);
-    } finally {
-      setLoading(false);
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
-  const handleSaveSettings = async () => {
-    try {
-      setSaving(true);
-      
-      const response = await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
-      });
-
-      if (response.ok) {
-        setMessage({ type: 'success', text: 'Settings saved successfully!' });
-      } else {
-        const data = await response.json();
-        setMessage({ type: 'error', text: data.error || 'Failed to save settings' });
+  const handleFaviconUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFaviconPreview(reader.result as string)
       }
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Network error' });
-    } finally {
-      setSaving(false);
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
-  const handleExportSettings = async () => {
-    try {
-      setExportLoading(true);
-      
-      const dataStr = JSON.stringify(settings, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `system-settings-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      setMessage({ type: 'success', text: 'Settings exported successfully!' });
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to export settings' });
-    } finally {
-      setExportLoading(false);
+  const handleBannerUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-  };
-
-  const handleImportSettings = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const importedSettings = JSON.parse(e.target?.result as string);
-        
-        // Validate imported settings structure
-        if (importedSettings.general && importedSettings.security && 
-            importedSettings.notifications && importedSettings.performance) {
-          setSettings(importedSettings);
-          setMessage({ type: 'success', text: 'Settings imported successfully! Save to apply changes.' });
-        } else {
-          setMessage({ type: 'error', text: 'Invalid settings file format' });
-        }
-      } catch (error) {
-        setMessage({ type: 'error', text: 'Failed to parse settings file' });
-      }
-    };
-    reader.readAsText(file);
-    
-    // Reset file input
-    event.target.value = '';
-  };
-
-  const updateSetting = (category: keyof SystemSettings, key: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [key]: value
-      }
-    }));
-  };
-
-  const formatBytes = (bytes: number) => {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 Bytes';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const formatUptime = (seconds: number) => {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${days}d ${hours}h ${minutes}m`;
-  };
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">System Settings</h1>
-          <p className="text-muted-foreground">
-            Configure system-wide settings and preferences
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={fetchSystemStatus} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh Status
-          </Button>
-          <Button variant="outline" onClick={handleExportSettings} disabled={exportLoading}>
-            <Download className="w-4 h-4 mr-2" />
-            {exportLoading ? 'Exporting...' : 'Export'}
-          </Button>
-          <div className="relative">
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImportSettings}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              disabled={importLoading}
-            />
-            <Button variant="outline" disabled={importLoading}>
-              <Upload className="w-4 h-4 mr-2" />
-              {importLoading ? 'Importing...' : 'Import'}
-            </Button>
-          </div>
-          <Button onClick={handleSaveSettings} disabled={saving}>
-            <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Settings'}
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Site Settings</h1>
+        <p className="text-gray-600">Manage your website configuration and appearance</p>
       </div>
 
-      {/* Message */}
-      {message && (
-        <Alert className={message.type === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-          {message.type === 'success' ? (
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          ) : (
-            <AlertCircle className="h-4 w-4 text-red-600" />
-          )}
-          <AlertDescription className={message.type === 'success' ? 'text-green-800' : 'text-red-800'}>
-            {message.text}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* System Status Overview */}
-      {systemStatus && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">System Uptime</p>
-                  <p className="text-2xl font-bold">{formatUptime(parseInt(systemStatus.uptime))}</p>
-                </div>
-                <Activity className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Memory Usage</p>
-                  <p className="text-2xl font-bold">{systemStatus.memoryUsage.percentage}%</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatBytes(systemStatus.memoryUsage.used)} / {formatBytes(systemStatus.memoryUsage.total)}
-                  </p>
-                </div>
-                <Database className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Disk Usage</p>
-                  <p className="text-2xl font-bold">{systemStatus.diskUsage.percentage}%</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatBytes(systemStatus.diskUsage.used)} / {formatBytes(systemStatus.diskUsage.total)}
-                  </p>
-                </div>
-                <Server className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active Users</p>
-                  <p className="text-2xl font-bold">{systemStatus.activeUsers}</p>
-                </div>
-                <Users className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Settings Tabs */}
-      <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="seo">SEO</TabsTrigger>
+          <TabsTrigger value="localization">Localization</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general">
+        {/* General Settings */}
+        <TabsContent value="general" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="w-5 h-5" />
-                General Settings
-              </CardTitle>
+              <CardTitle>Basic Information</CardTitle>
               <CardDescription>
-                Basic system configuration and site information
+                Configure your website's basic information
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Site Name</label>
-                  <Input
-                    value={settings.general.siteName}
-                    onChange={(e) => updateSetting('general', 'siteName', e.target.value)}
-                    placeholder="Enter site name"
-                  />
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="site-name">Website Name</Label>
+                  <Input id="site-name" defaultValue="Clash Tournaments" />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Admin Email</label>
-                  <Input
-                    type="email"
-                    value={settings.general.adminEmail}
-                    onChange={(e) => updateSetting('general', 'adminEmail', e.target.value)}
-                    placeholder="admin@example.com"
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="site-url">Website URL</Label>
+                  <Input id="site-url" defaultValue="https://clashtournaments.com" />
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Site Description</label>
-                <Input
-                  value={settings.general.siteDescription}
-                  onChange={(e) => updateSetting('general', 'siteDescription', e.target.value)}
-                  placeholder="Enter site description"
+              
+              <div className="space-y-2">
+                <Label htmlFor="site-description">Site Description</Label>
+                <Textarea 
+                  id="site-description" 
+                  rows={3}
+                  defaultValue="The ultimate platform for Clash tournaments and competitive gaming"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Timezone</label>
-                  <Select value={settings.general.timezone} onValueChange={(value) => updateSetting('general', 'timezone', value)}>
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">Admin Email</Label>
+                <Input id="admin-email" type="email" defaultValue="admin@clashtournaments.com" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Brand Assets</CardTitle>
+              <CardDescription>
+                Upload your logo, favicon, and banner images
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Logo Upload */}
+              <div className="space-y-2">
+                <Label>Logo</Label>
+                <div className="flex items-center space-x-6">
+                  <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                    <img 
+                      src={logoPreview} 
+                      alt="Logo preview" 
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="mb-2"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Recommended: 200x200px, max 2MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Favicon Upload */}
+              <div className="space-y-2">
+                <Label>Favicon</Label>
+                <div className="flex items-center space-x-6">
+                  <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                    <img 
+                      src={faviconPreview} 
+                      alt="Favicon preview" 
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFaviconUpload}
+                      className="mb-2"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Recommended: 32x32px, max 1MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Banner Upload */}
+              <div className="space-y-2">
+                <Label>Site Banner</Label>
+                <div className="space-y-4">
+                  <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                    <img 
+                      src={bannerPreview} 
+                      alt="Banner preview" 
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleBannerUpload}
+                      className="mb-2"
+                    />
+                    <p className="text-sm text-gray-500">
+                      Recommended: 1200x300px, max 5MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Appearance Settings */}
+        <TabsContent value="appearance" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Palette className="mr-2 h-5 w-5" />
+                Theme Customization
+              </CardTitle>
+              <CardDescription>
+                Customize your website's colors and typography
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="primary-color">Primary Color</Label>
+                  <div className="flex space-x-2">
+                    <Input id="primary-color" type="color" defaultValue="#3b82f6" />
+                    <Input defaultValue="#3b82f6" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="secondary-color">Secondary Color</Label>
+                  <div className="flex space-x-2">
+                    <Input id="secondary-color" type="color" defaultValue="#64748b" />
+                    <Input defaultValue="#64748b" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="font-primary">Primary Font</Label>
+                  <Select defaultValue="inter">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="UTC">UTC</SelectItem>
-                      <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                      <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                      <SelectItem value="Europe/London">London</SelectItem>
-                      <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
+                      <SelectItem value="inter">Inter</SelectItem>
+                      <SelectItem value="roboto">Roboto</SelectItem>
+                      <SelectItem value="opensans">Open Sans</SelectItem>
+                      <SelectItem value="lato">Lato</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Language</label>
-                  <Select value={settings.general.language} onValueChange={(value) => updateSetting('general', 'language', value)}>
+                <div className="space-y-2">
+                  <Label htmlFor="font-size">Base Font Size</Label>
+                  <Select defaultValue="16">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="14">14px</SelectItem>
+                      <SelectItem value="16">16px</SelectItem>
+                      <SelectItem value="18">18px</SelectItem>
+                      <SelectItem value="20">20px</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Dark Mode</Label>
+                    <p className="text-sm text-gray-500">Enable dark mode for users</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Rounded Corners</Label>
+                    <p className="text-sm text-gray-500">Use rounded corners for UI elements</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* SEO Settings */}
+        <TabsContent value="seo" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Search className="mr-2 h-5 w-5" />
+                SEO Configuration
+              </CardTitle>
+              <CardDescription>
+                Optimize your website for search engines
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="meta-title">Meta Title</Label>
+                <Input 
+                  id="meta-title" 
+                  defaultValue="Clash Tournaments - Competitive Gaming Platform"
+                  maxLength={60}
+                />
+                <p className="text-sm text-gray-500">60 characters max</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta-description">Meta Description</Label>
+                <Textarea 
+                  id="meta-description" 
+                  rows={3}
+                  defaultValue="Join the ultimate Clash tournaments platform. Compete, win prizes, and climb the rankings in your favorite games."
+                  maxLength={160}
+                />
+                <p className="text-sm text-gray-500">160 characters max</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="meta-keywords">Meta Keywords</Label>
+                <Input 
+                  id="meta-keywords" 
+                  defaultValue="clash, tournaments, gaming, competitive, esports"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="google-analytics">Google Analytics ID</Label>
+                <Input 
+                  id="google-analytics" 
+                  placeholder="G-XXXXXXXXXX"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Index by Search Engines</Label>
+                    <p className="text-sm text-gray-500">Allow search engines to index your site</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Generate Sitemap</Label>
+                    <p className="text-sm text-gray-500">Automatically generate XML sitemap</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Localization Settings */}
+        <TabsContent value="localization" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Globe className="mr-2 h-5 w-5" />
+                Localization
+              </CardTitle>
+              <CardDescription>
+                Configure language, timezone, and currency settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="language">Default Language</Label>
+                  <Select defaultValue="en">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -431,271 +365,133 @@ export default function AdminSettingsPage() {
                       <SelectItem value="es">Spanish</SelectItem>
                       <SelectItem value="fr">French</SelectItem>
                       <SelectItem value="de">German</SelectItem>
-                      <SelectItem value="ar">Arabic</SelectItem>
+                      <SelectItem value="zh">Chinese</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="timezone">Timezone</Label>
+                  <Select defaultValue="utc">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="utc">UTC</SelectItem>
+                      <SelectItem value="est">Eastern Time</SelectItem>
+                      <SelectItem value="pst">Pacific Time</SelectItem>
+                      <SelectItem value="cst">Central Time</SelectItem>
+                      <SelectItem value="mst">Mountain Time</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Maintenance Mode</label>
-                  <p className="text-sm text-muted-foreground">
-                    When enabled, only administrators can access the site
-                  </p>
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Default Currency</Label>
+                  <Select defaultValue="usd">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="usd">USD ($)</SelectItem>
+                      <SelectItem value="eur">EUR (€)</SelectItem>
+                      <SelectItem value="gbp">GBP (£)</SelectItem>
+                      <SelectItem value="jpy">JPY (¥)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Switch
-                  checked={settings.general.maintenanceMode}
-                  onCheckedChange={(checked) => updateSetting('general', 'maintenanceMode', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Security Settings
-              </CardTitle>
-              <CardDescription>
-                Configure security options and authentication settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Require Email Verification</label>
-                  <p className="text-sm text-muted-foreground">
-                    Users must verify their email address before accessing the site
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.security.requireEmailVerification}
-                  onCheckedChange={(checked) => updateSetting('security', 'requireEmailVerification', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Two-Factor Authentication</label>
-                  <p className="text-sm text-muted-foreground">
-                    Enable 2FA for enhanced security
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.security.twoFactorAuth}
-                  onCheckedChange={(checked) => updateSetting('security', 'twoFactorAuth', checked)}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Session Timeout (seconds)</label>
-                  <Input
-                    type="number"
-                    value={settings.security.sessionTimeout}
-                    onChange={(e) => updateSetting('security', 'sessionTimeout', parseInt(e.target.value) || 3600)}
-                    placeholder="3600"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Max Login Attempts</label>
-                  <Input
-                    type="number"
-                    value={settings.security.maxLoginAttempts}
-                    onChange={(e) => updateSetting('security', 'maxLoginAttempts', parseInt(e.target.value) || 5)}
-                    placeholder="5"
-                  />
+                <div className="space-y-2">
+                  <Label htmlFor="date-format">Date Format</Label>
+                  <Select defaultValue="mdy">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mdy">MM/DD/YYYY</SelectItem>
+                      <SelectItem value="dmy">DD/MM/YYYY</SelectItem>
+                      <SelectItem value="ymd">YYYY-MM-DD</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Password Min Length</label>
-                  <Input
-                    type="number"
-                    value={settings.security.passwordMinLength}
-                    onChange={(e) => updateSetting('security', 'passwordMinLength', parseInt(e.target.value) || 8)}
-                    placeholder="8"
-                  />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Multi-language Support</Label>
+                    <p className="text-sm text-gray-500">Enable multiple languages</p>
+                  </div>
+                  <Switch />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Password Expiry (days)</label>
-                  <Input
-                    type="number"
-                    value={settings.security.passwordExpiry}
-                    onChange={(e) => updateSetting('security', 'passwordExpiry', parseInt(e.target.value) || 90)}
-                    placeholder="90"
-                  />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Auto-detect Language</Label>
+                    <p className="text-sm text-gray-500">Detect user's preferred language</p>
+                  </div>
+                  <Switch />
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications">
+        {/* Advanced Settings */}
+        <TabsContent value="advanced" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5" />
-                Notification Settings
-              </CardTitle>
+              <CardTitle>Advanced Configuration</CardTitle>
               <CardDescription>
-                Configure system notifications and alerts
+                Advanced settings for power users
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email Notifications</label>
-                  <p className="text-sm text-muted-foreground">
-                    Send email notifications for system events
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.emailNotifications}
-                  onCheckedChange={(checked) => updateSetting('notifications', 'emailNotifications', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Push Notifications</label>
-                  <p className="text-sm text-muted-foreground">
-                    Enable push notifications for real-time updates
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.pushNotifications}
-                  onCheckedChange={(checked) => updateSetting('notifications', 'pushNotifications', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Admin Alerts</label>
-                  <p className="text-sm text-muted-foreground">
-                    Send alerts to administrators for critical issues
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.adminAlerts}
-                  onCheckedChange={(checked) => updateSetting('notifications', 'adminAlerts', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Tournament Updates</label>
-                  <p className="text-sm text-muted-foreground">
-                    Notify users about tournament status changes
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.tournamentUpdates}
-                  onCheckedChange={(checked) => updateSetting('notifications', 'tournamentUpdates', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">User Registration</label>
-                  <p className="text-sm text-muted-foreground">
-                    Notify administrators when new users register
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.notifications.userRegistration}
-                  onCheckedChange={(checked) => updateSetting('notifications', 'userRegistration', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                Performance Settings
-              </CardTitle>
-              <CardDescription>
-                Optimize system performance and caching behavior
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Enable Caching</label>
-                  <p className="text-sm text-muted-foreground">
-                    Cache frequently accessed data for better performance
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.performance.cacheEnabled}
-                  onCheckedChange={(checked) => updateSetting('performance', 'cacheEnabled', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Enable Compression</label>
-                  <p className="text-sm text-muted-foreground">
-                    Compress responses to reduce bandwidth usage
-                  </p>
-                </div>
-                <Switch
-                  checked={settings.performance.compressionEnabled}
-                  onCheckedChange={(checked) => updateSetting('performance', 'compressionEnabled', checked)}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Cache Timeout (seconds)</label>
-                  <Input
-                    type="number"
-                    value={settings.performance.cacheTimeout}
-                    onChange={(e) => updateSetting('performance', 'cacheTimeout', parseInt(e.target.value) || 300)}
-                    placeholder="300"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Max Upload Size (MB)</label>
-                  <Input
-                    type="number"
-                    value={settings.performance.maxUploadSize}
-                    onChange={(e) => updateSetting('performance', 'maxUploadSize', parseInt(e.target.value) || 10)}
-                    placeholder="10"
-                  />
+              <div className="space-y-2">
+                <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch />
+                  <span className="text-sm text-gray-500">Enable maintenance mode</span>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Log Level</label>
-                <Select value={settings.performance.logLevel} onValueChange={(value) => updateSetting('performance', 'logLevel', value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="error">Error</SelectItem>
-                    <SelectItem value="warn">Warning</SelectItem>
-                    <SelectItem value="info">Info</SelectItem>
-                    <SelectItem value="debug">Debug</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-2">
+                <Label htmlFor="cache-duration">Cache Duration (minutes)</Label>
+                <Input id="cache-duration" type="number" defaultValue="60" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="max-upload-size">Max Upload Size (MB)</Label>
+                <Input id="max-upload-size" type="number" defaultValue="10" />
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Debug Mode</Label>
+                    <p className="text-sm text-gray-500">Enable debug information</p>
+                  </div>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>API Access</Label>
+                    <p className="text-sm text-gray-500">Enable public API access</p>
+                  </div>
+                  <Switch />
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button className="flex items-center">
+          <Save className="mr-2 h-4 w-4" />
+          Save Settings
+        </Button>
+      </div>
     </div>
-  );
+  )
 }

@@ -85,7 +85,7 @@ export default function CreateTournamentPage() {
 
   const fetchPackages = async () => {
     try {
-      const response = await fetch('/api/admin/packages');
+      const response = await fetch('/api/packages');
       if (response.ok) {
         const data = await response.json();
         // Filter active packages and sort by price

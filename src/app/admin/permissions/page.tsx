@@ -107,7 +107,7 @@ export default function UserPermissionsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [selectedPermission, setSelectedPermission] = useState("");
-  const [expirationDays, setExpirationDays] = useState("");
+  const [expirationDays, setExpirationDays] = useState("none");
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function UserPermissionsPage() {
         body: JSON.stringify({
           userId: selectedUser,
           permission: selectedPermission,
-          expiresAt: expirationDays ? new Date(Date.now() + parseInt(expirationDays) * 24 * 60 * 60 * 1000).toISOString() : undefined
+          expiresAt: expirationDays && expirationDays !== "none" ? new Date(Date.now() + parseInt(expirationDays) * 24 * 60 * 60 * 1000).toISOString() : undefined
         })
       });
 
@@ -158,7 +158,7 @@ export default function UserPermissionsPage() {
         setShowAddDialog(false);
         setSelectedUser("");
         setSelectedPermission("");
-        setExpirationDays("");
+        setExpirationDays("none");
         fetchUsersAndPermissions();
       } else {
         const data = await response.json();
@@ -325,7 +325,7 @@ export default function UserPermissionsPage() {
                     <SelectValue placeholder="No expiration" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No expiration</SelectItem>
+                    <SelectItem value="none">No expiration</SelectItem>
                     <SelectItem value="1">1 day</SelectItem>
                     <SelectItem value="7">7 days</SelectItem>
                     <SelectItem value="30">30 days</SelectItem>
