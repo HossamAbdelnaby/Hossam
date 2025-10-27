@@ -44,6 +44,7 @@ model User {
   adminLogs     AdminLog[]
   registrationLogs RegistrationLog[]
   pendingTournaments PendingTournament[]
+  activityLogs   ActivityLog[]
 
   @@map("users")
 }
@@ -698,4 +699,36 @@ model UserPermission {
 
   @@unique([userId, permission])
   @@map("user_permissions")
+}
+
+// Activity Log Model
+model ActivityLog {
+  id          String       @id @default(cuid())
+  userName    String?
+  action      String
+  target      String?
+  type        ActivityType
+  details     String?      // JSON details
+  isRead      Boolean      @default(false)
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime     @default(now())
+
+  // Relations
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id])
+
+  @@map("activity_logs")
+}
+
+enum ActivityType {
+  TOURNAMENT
+  CLAN
+  PAYMENT
+  USER
+  SYSTEM
+  CONTRACT
+  SERVICE
+  MESSAGE
+  NOTIFICATION
 }
